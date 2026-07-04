@@ -10,10 +10,15 @@ import { HistorialClinico } from '../historial_clinico/entities/historial_clinic
 import { CitasGateway } from './citas.gateway';
 import { LogsSistemaModule } from '../../core/logs_sistema/logs_sistema.module';
 
+const isVercel = process.env.VERCEL === '1';
+const gatewayProvider = isVercel
+  ? { provide: CitasGateway, useValue: { emitirCitaCreada: () => {}, emitirCitaActualizada: () => {} } }
+  : CitasGateway;
+
 @Module({
   imports: [TypeOrmModule.forFeature([Cita, HorarioAtencion, Servicio, FechaBloqueada, HistorialClinico]), LogsSistemaModule],
   controllers: [CitasController],
-  providers: [CitasService, CitasGateway],
-  exports: [CitasService, CitasGateway],
+  providers: [CitasService, gatewayProvider],
+  exports: [CitasService, gatewayProvider],
 })
 export class CitasModule {}

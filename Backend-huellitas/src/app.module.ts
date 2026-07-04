@@ -56,7 +56,7 @@ import { ReportesModule } from './modules/reportes/reportes.module';
   imports: [
     MyConfigModule,
     MyDatabaseModule,
-    ScheduleModule.forRoot(),
+    ...(process.env.VERCEL === '1' ? [] : [ScheduleModule.forRoot()]),
 
     // Core
     RolesModule,
@@ -100,7 +100,7 @@ import { ReportesModule } from './modules/reportes/reportes.module';
     RegistroNotificacionesModule,
     InteraccionesBotModule,
     MensajeroModule,
-    NotificacionSchedulerModule,
+    ...(process.env.VERCEL === '1' ? [] : [NotificacionSchedulerModule]),
     BotApiModule,
     AuthModule,
     ReportesModule,

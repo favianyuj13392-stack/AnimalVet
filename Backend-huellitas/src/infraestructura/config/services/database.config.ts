@@ -26,6 +26,10 @@ export class MyDataBaseConfig {
     let ssl: any = false;
     if (env === EnviromentEnum.PRODUCTION) {
       logging = false;
+    }
+    
+    // Forzar SSL si es Supabase, sin importar el NODE_ENV de Vercel
+    if (baseConfig.host && baseConfig.host.includes('supabase')) {
       ssl = { rejectUnauthorized: false };
     }
 
