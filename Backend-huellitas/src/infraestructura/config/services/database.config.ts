@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { MyConfigService } from '../config.service';
 import { MyServerConfig } from './server.config';
-import { EnviromentEnum } from 'src/compartido/enums/enviroment.enum';
+import { EnviromentEnum } from '../../../compartido/enums/enviroment.enum';
 
 @Injectable()
 export class MyDataBaseConfig {

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { MyConfigService } from '../config.service';
-import { EnviromentEnum } from 'src/compartido/enums/enviroment.enum';
+import { EnviromentEnum } from '../../../compartido/enums/enviroment.enum';
 
 export interface MyServerConfigInterface {
   nodeEnv: string;

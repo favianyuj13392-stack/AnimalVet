@@ -1,5 +1,5 @@
 import * as Joi from 'joi';
-import { EnviromentEnum } from 'src/compartido/enums/enviroment.enum';
+import { EnviromentEnum } from '../../compartido/enums/enviroment.enum';
 
 export const validationSchema = Joi.object({
   NODE_ENV: Joi.string()

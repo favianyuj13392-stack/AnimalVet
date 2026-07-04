@@ -1,4 +1,4 @@
-import { EnviromentEnum } from 'src/compartido/enums/enviroment.enum';
+import { EnviromentEnum } from '../../../compartido/enums/enviroment.enum';
 
 export const environmentConfig = {
   [EnviromentEnum.PRODUCTION]: {

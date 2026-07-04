@@ -1,4 +1,4 @@
-import { EnviromentEnum } from 'src/compartido/enums/enviroment.enum';
+import { EnviromentEnum } from '../../../compartido/enums/enviroment.enum';
 import { MyServerConfigInterface } from './server.config';
 
 export function logServerStatus(config: MyServerConfigInterface) {
