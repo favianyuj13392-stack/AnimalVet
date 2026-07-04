@@ -3,10 +3,6 @@ import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.int
 
 export function getCorsOptions(allowedOrigins: string): CorsOptions {
   if (allowedOrigins === '*') {
-    if (process.env.NODE_ENV === 'production') {
-      throw new Error('DOMAIN_FRONTEND must be explicit in production when credentials are enabled');
-    }
-
     return {
       origin: true,
       methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
