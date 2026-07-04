@@ -284,6 +284,23 @@ export default function CajaPosPage() {
     toast.success("Historial cargado en caja.");
   };
 
+  // Cargar automáticamente historial si viene por parámetro en la URL desde agenda
+  useEffect(() => {
+    if (typeof window !== "undefined" && todosPendientes && todosPendientes.length > 0) {
+      const params = new URLSearchParams(window.location.search);
+      const idHistorial = params.get("id_historial");
+      if (idHistorial) {
+        const item = (todosPendientes as any[]).find((t: any) => t.id_historial === idHistorial);
+        if (item) {
+          cargarHistorialAlCarrito(item);
+          // Limpiar el parámetro de la URL para evitar recargas accidentadas
+          const newUrl = window.location.pathname;
+          window.history.replaceState({}, "", newUrl);
+        }
+      }
+    }
+  }, [todosPendientes]);
+
   const cargarHospAlCarrito = (h: any) => {
     if (carrito.length > 0) toast.info("El carrito actual fue reemplazado.");
     const itemsPreview: CartItem[] = [];

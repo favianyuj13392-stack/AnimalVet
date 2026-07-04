@@ -850,7 +850,7 @@ export default function CajaAgendaPage() {
                         </TableCell>
                         <TableCell className="text-right px-6">
                           <Button size="sm" className="rounded-xl h-8 text-xs gap-1.5"
-                            onClick={() => window.location.href = `/caja/pos`}>
+                            onClick={() => window.location.href = `/caja/pos?id_historial=${h.id_historial}`}>
                             <BanknoteIcon className="h-3.5 w-3.5" /> Cobrar en POS
                           </Button>
                         </TableCell>
