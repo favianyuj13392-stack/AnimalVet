@@ -27,22 +27,22 @@ export const validationSchema = Joi.object({
   JWT_SECRET: Joi.string().min(16).required(),
   JWT_TIME_EXPIRE: Joi.string().default('24h'),
 
-  // Twilio WhatsApp
-  TWILIO_ACCOUNT_SID: Joi.string().required(),
-  TWILIO_AUTH_TOKEN: Joi.string().required(),
-  TWILIO_WHATSAPP_FROM: Joi.string().required(),
+  // Twilio WhatsApp (Opcional en produccion)
+  TWILIO_ACCOUNT_SID: Joi.string().default('ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'),
+  TWILIO_AUTH_TOKEN: Joi.string().default('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'),
+  TWILIO_WHATSAPP_FROM: Joi.string().default('whatsapp:+14155238886'),
 
-  // Email (Gmail SMTP)
-  EMAIL_HOST: Joi.string().required(),
-  EMAIL_PORT: Joi.number().required(),
-  EMAIL_USER: Joi.string().email().required(),
-  EMAIL_PASS: Joi.string().required(),
-  EMAIL_FROM: Joi.string().required(),
-  ADMIN_EMAIL: Joi.string().email().required(),
+  // Email (Gmail SMTP) (Opcional en produccion)
+  EMAIL_HOST: Joi.string().default('smtp.gmail.com'),
+  EMAIL_PORT: Joi.number().default(587),
+  EMAIL_USER: Joi.string().default('tu_correo@gmail.com'),
+  EMAIL_PASS: Joi.string().default('xxxx xxxx xxxx xxxx'),
+  EMAIL_FROM: Joi.string().default('Huellitas Digitales <tu_correo@gmail.com>'),
+  ADMIN_EMAIL: Joi.string().default('admin@tudominio.com'),
 
-  // Gemini y Bot
-  GEMINI_API_KEY: Joi.string().required(),
-  BOT_API_KEY: Joi.string().min(16).required(),
+  // Gemini y Bot (Opcional en produccion)
+  GEMINI_API_KEY: Joi.string().default('tu_gemini_api_key_aqui'),
+  BOT_API_KEY: Joi.string().min(16).default('genera_una_clave_aleatoria_larga_aqui_16'),
 
   MODO_DIOS: Joi.boolean().default(false),
 });
