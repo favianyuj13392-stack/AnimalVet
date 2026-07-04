@@ -26,11 +26,23 @@ api.interceptors.response.use(
     let message = "Ocurrió un error inesperado en Huellitas";
     
     if (error.response) {
+      const backendMessage = error.response.data?.message;
       switch (error.response.status) {
-        case 401: message = "Sesión expirada. Por favor, inicia sesión de nuevo."; break;
-        case 403: message = "No tienes permisos para realizar esta acción."; break;
-        case 404: message = "El recurso solicitado no existe."; break;
-        case 422: message = "Los datos enviados son incorrectos."; break;
+        case 401:
+          const isLoginRequest = error.config?.url?.includes('/auth/login');
+          if (!isLoginRequest) {
+            message = "Sesión expirada. Por favor, inicia sesión de nuevo.";
+            useAuthStore.getState().logout();
+            if (typeof window !== 'undefined') {
+              window.location.href = '/login';
+            }
+          } else {
+            message = backendMessage || "Usuario o contraseña incorrectos.";
+          }
+          break;
+        case 403: message = backendMessage || "No tienes permisos para realizar esta acción."; break;
+        case 404: message = backendMessage || "El recurso solicitado no existe."; break;
+        case 422: message = backendMessage || "Los datos enviados son incorrectos."; break;
         case 500: message = "Error interno del servidor. Reintenta más tarde."; break;
       }
     } else if (error.request) {
