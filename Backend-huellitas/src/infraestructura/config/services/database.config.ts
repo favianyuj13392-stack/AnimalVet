@@ -23,13 +23,16 @@ export class MyDataBaseConfig {
     };
 
     let logging = this.config.get<boolean>('DB_LOGS');
+    let ssl: any = false;
     if (env === EnviromentEnum.PRODUCTION) {
       logging = false;
+      ssl = { rejectUnauthorized: false };
     }
 
     return {
       ...baseConfig,
       logging,
+      ssl,
     };
   }
 }
