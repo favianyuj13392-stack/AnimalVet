@@ -28,7 +28,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/acceso-denegado', request.url));
   }
 
-  if (rutaSolicitada.startsWith('/vet') && rolUsuario !== 'Veterinario') {
+  if (rutaSolicitada.startsWith('/vet') && rolUsuario !== 'Veterinario' && rolUsuario !== 'Administrador') {
     return NextResponse.redirect(new URL('/acceso-denegado', request.url));
   }
 
