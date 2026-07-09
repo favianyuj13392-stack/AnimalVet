@@ -1,9 +1,9 @@
-# Tests Funcionales — Huellitas Digitales
+# Tests Funcionales — AnimalVet
 
 ## Instalación (solo la primera vez)
 
 ```bash
-cd frontend-huellitas
+cd animalvet
 npm install -D @playwright/test
 npx playwright install chromium
 ```

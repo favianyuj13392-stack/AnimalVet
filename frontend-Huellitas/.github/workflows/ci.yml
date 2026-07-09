@@ -1,4 +1,4 @@
-name: CI — Frontend Huellitas
+name: CI — AnimalVet Frontend
 
 on:
   push:

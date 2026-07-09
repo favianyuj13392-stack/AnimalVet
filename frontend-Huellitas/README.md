@@ -1,4 +1,4 @@
-# 🐾 Huellitas Digitales — Frontend
+# 🐾 AnimalVet — Frontend
 
 Aplicación web construida con **Next.js 15** y **TailwindCSS** para la gestión integral de una clínica veterinaria. Incluye portales diferenciados para Admin, Veterinario, Cajero y Cliente, además de páginas públicas.
 
@@ -62,7 +62,7 @@ Aplicación web construida con **Next.js 15** y **TailwindCSS** para la gestión
 ## Requisitos
 
 - Node.js >= 18
-- Backend de Huellitas corriendo (ver [Backend README](https://github.com/huellitas-digitales/Backend-huellitas))
+- Backend de AnimalVet corriendo en `http://localhost:3001`
 - Cuenta en [Cloudinary](https://cloudinary.com) para subida de imágenes
 
 ---
@@ -71,8 +71,8 @@ Aplicación web construida con **Next.js 15** y **TailwindCSS** para la gestión
 
 ```bash
 # 1. Clona el repositorio
-git clone https://github.com/huellitas-digitales/frontend-Huellitas.git
-cd frontend-Huellitas
+git clone https://github.com/FavianYujra13/AnimalVet.git
+cd animalvet
 
 # 2. Instala dependencias
 npm install
@@ -99,7 +99,7 @@ cp .env.example .env.local
 
 | Variable | Descripción |
 |---|---|
-| `NEXT_PUBLIC_API_URL` | URL del backend (ej. `http://localhost:3001`) |
+| `NEXT_PUBLIC_API_URL` | URL del backend (ej. `http://localhost:3001/api/animalvet`) |
 | `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` | Nombre de tu cloud en Cloudinary |
 | `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET` | Preset de subida sin firmar en Cloudinary |
 
@@ -150,4 +150,4 @@ src/
 
 ## Licencia
 
-Proyecto académico — Huellitas Digitales © 2026
+AnimalVet © 2026 — Todos los derechos reservados.
