@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState } from "react";
 import { Users, Plus } from "lucide-react";
@@ -99,7 +99,7 @@ export function RegisterStaffDialog({
               <Input
                 id="email"
                 type="email"
-                placeholder="claudia.rivas@huellitas.com"
+                placeholder="claudia.rivas@animalvet.com"
                 value={nuevoMiembro.email}
                 onChange={(e) => { setNuevoMiembro({ ...nuevoMiembro, email: e.target.value }); setErrors((p) => ({ ...p, email: undefined })); }}
                 className={`rounded-xl h-11 ${errors.email ? "border-destructive" : ""}`}

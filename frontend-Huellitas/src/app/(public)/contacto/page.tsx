@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -25,13 +25,13 @@ function Reveal({ children, delay = 0, className = "" }: {
 const info = [
   { icon: MapPin,  label: "Dirección",              value: "Av. Principal #123, Zona Sur\nLa Paz, Bolivia" },
   { icon: Phone,   label: "Teléfono / Emergencias",  value: "+591 71234567\nDisponible 24/7" },
-  { icon: Mail,    label: "Correo electrónico",       value: "contacto@huellitas-vet.com" },
+  { icon: Mail,    label: "Correo electrónico",       value: "contacto@animalvet-vet.com" },
   { icon: Clock,   label: "Horarios",                value: "Lunes a Domingo\n24 horas — Urgencias siempre activas" },
 ];
 
 const redes = [
-  { icon: Camera,         label: "Instagram",  href: "#", handle: "@huellitas.vet" },
-  { icon: Globe,          label: "Facebook",   href: "#", handle: "Huellitas Veterinaria" },
+  { icon: Camera,         label: "Instagram",  href: "#", handle: "@animalvet.vet" },
+  { icon: Globe,          label: "Facebook",   href: "#", handle: "AnimalVet Veterinaria" },
   { icon: MessageCircle,  label: "WhatsApp",   href: "#", handle: "+591 71234567" },
 ];
 
@@ -44,7 +44,7 @@ export default function ContactoPage() {
         <div className="absolute inset-0">
           <Image
             src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=1600&q=80"
-            alt="Contacto Huellitas"
+            alt="Contacto AnimalVet"
             fill className="object-cover object-center"
             style={{ filter: "brightness(0.5) saturate(1.1)" }}
             priority
@@ -120,7 +120,7 @@ export default function ContactoPage() {
                   style={{ border: 0 }}
                   allowFullScreen loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
-                  title="Ubicación Huellitas"
+                  title="Ubicación AnimalVet"
                 />
               </div>
             </Reveal>

@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import Link from "next/link";
 import { PawPrint, Mail, Phone, MapPin } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
@@ -17,7 +17,7 @@ export default function Footer() {
           <div className="flex flex-col gap-4">
             <Link href="/" className="flex items-center gap-2">
               <PawPrint className="h-6 w-6 text-primary" />
-              <span className="font-bold text-xl tracking-tight">Huellitas</span>
+              <span className="font-bold text-xl tracking-tight">AnimalVet</span>
             </Link>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Cuidamos a los miembros más peludos de tu familia con tecnología de punta y el amor que merecen.
@@ -57,7 +57,7 @@ export default function Footer() {
               </li>
               <li className="flex items-center gap-3 text-sm text-muted-foreground">
                 <Mail className="h-4 w-4 shrink-0" />
-                <span>hola@huellitas.com</span>
+                <span>hola@animalvet.com</span>
               </li>
             </ul>
           </div>
@@ -84,7 +84,7 @@ export default function Footer() {
 
         {/* COPYRIGHT */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-muted-foreground">
-          <p>© {currentYear} Clínica Veterinaria Huellitas. Todos los derechos reservados.</p>
+          <p>© {currentYear} AnimalVet. Todos los derechos reservados.</p>
           <div className="flex gap-4">
             <Link href="/privacidad" className="hover:text-primary transition-colors">Política de Privacidad</Link>
             <Link href="/terminos" className="hover:text-primary transition-colors">Términos de Servicio</Link>

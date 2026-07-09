@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -8,7 +8,7 @@ import { MapPin, Calendar, Phone, Search, ArrowRight, AlertTriangle, Heart, Gift
 import { Button } from "@/shared/components/ui/button";
 import api from "@/shared/lib/axios";
 
-const BASE_URL = "https://huellitas-digitales.net";
+const BASE_URL = "https://animalvet-digitales.net";
 
 function buildShareText(m: { nombre: string; raza: string; especie: string; zona: string; telefono_contacto: string | null; hash_qr_identidad: string }) {
   const url = `${BASE_URL}/emergencia/${m.hash_qr_identidad}`;
@@ -147,7 +147,7 @@ export default function MascotasPerdidasPage() {
         <div className="relative z-10 w-full max-w-screen-xl mx-auto px-6 md:px-16 pb-14">
           <motion.p initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
             className="text-xs font-medium tracking-[0.2em] uppercase text-white/50 mb-3">
-            Comunidad Huellitas
+            Comunidad AnimalVet
           </motion.p>
           <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1 }}
             className="text-5xl md:text-7xl font-black tracking-tighter text-white leading-[0.95]">
@@ -345,7 +345,7 @@ export default function MascotasPerdidasPage() {
               Juntos los encontramos.
             </h2>
             <p className="text-muted-foreground max-w-md mx-auto mb-8">
-              Regístrate gratis en Huellitas para que tu mascota tenga placa QR y aparezca aquí si alguna vez se extravía.
+              Regístrate gratis en AnimalVet para que tu mascota tenga placa QR y aparezca aquí si alguna vez se extravía.
             </p>
             <Button asChild size="lg" className="h-14 px-10 rounded-full font-semibold text-base hover:scale-105 transition-transform">
               <Link href="/registro">Crear cuenta gratis <ArrowRight className="ml-2 h-5 w-5" /></Link>

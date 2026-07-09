@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import Image from "next/image";
@@ -203,7 +203,7 @@ export default function LandingPage() {
         <Reveal delay={0.2}>
           <div className="flex flex-col md:flex-row gap-8 mt-12 md:mt-16 border-t border-border/50 pt-12">
             <p className="text-muted-foreground text-lg leading-relaxed max-w-xl">
-              En Huellitas combinamos tecnología de punta con un trato humano y cercano.
+              En AnimalVet combinamos tecnología de punta con un trato humano y cercano.
               Nuestro equipo de especialistas está disponible todos los días del año,
               porque la salud de tu compañero no puede esperar.
             </p>
@@ -382,7 +382,7 @@ export default function LandingPage() {
           <Reveal>
             <div className="space-y-6">
               <p className="text-xs font-medium tracking-[0.2em] uppercase text-muted-foreground">
-                ¿Por qué Huellitas?
+                ¿Por qué AnimalVet?
               </p>
               <h2 className="text-4xl md:text-5xl font-black tracking-tighter leading-tight">
                 Tecnología.<br />Experiencia.<br />
@@ -548,7 +548,7 @@ export default function LandingPage() {
               className="group relative mt-3 rounded-2xl overflow-hidden h-36 cursor-pointer">
               <Image
                 src="https://images.unsplash.com/photo-1450778869180-41d0601e046e?w=1200&q=75"
-                alt="Petshop Huellitas"
+                alt="Petshop AnimalVet"
                 fill className="object-cover object-center group-hover:scale-105 transition-transform duration-700"
                 style={{ filter: "brightness(0.55)" }}
               />

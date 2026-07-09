@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -66,7 +66,7 @@ export default function NosotrosPage() {
         <div className="absolute inset-0">
           <Image
             src="https://images.unsplash.com/photo-1628009368231-7bb7cfcb0def?w=1600&q=80"
-            alt="Equipo Huellitas"
+            alt="Equipo AnimalVet"
             fill className="object-cover object-top"
             style={{ filter: "brightness(0.5) saturate(1.1)" }}
             priority
@@ -94,7 +94,7 @@ export default function NosotrosPage() {
               Nacimos para<br />cambiar la veterinaria.
             </h2>
             <p className="text-muted-foreground text-lg leading-relaxed">
-              Desde 2009, Huellitas fusiona medicina veterinaria de excelencia con tecnología de gestión de clase mundial. Creemos que la innovación salva vidas cuando se pone al servicio de la salud animal.
+              Desde 2009, AnimalVet fusiona medicina veterinaria de excelencia con tecnología de gestión de clase mundial. Creemos que la innovación salva vidas cuando se pone al servicio de la salud animal.
             </p>
           </Reveal>
           <Reveal delay={0.15}>

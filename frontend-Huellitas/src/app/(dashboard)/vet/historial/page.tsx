@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState } from "react";
 import { FileViewer } from "@/shared/components/ui/file-viewer";
@@ -177,7 +177,7 @@ export default function HistorialPage() {
             Historial Clínico de la Clínica
           </h1>
           <p className="text-muted-foreground mt-1">
-            Registro global de consultas, diagnósticos y triajes realizados en Huellitas.
+            Registro global de consultas, diagnósticos y triajes realizados en AnimalVet.
           </p>
         </div>
       </div>
@@ -288,7 +288,7 @@ export default function HistorialPage() {
                     <User className="h-3.5 w-3.5 text-primary" />
                     {consulta.veterinario
                       ? `Dr(a). ${consulta.veterinario.nombres} ${consulta.veterinario.apellidos}`
-                      : "Médico Huellitas"}
+                      : "Médico AnimalVet"}
                   </div>
 
                   <div className="flex gap-1.5">

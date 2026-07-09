@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState } from "react";
 import dynamic from "next/dynamic";
@@ -314,7 +314,7 @@ export function PetLostStatus({ mascota }: PetLostStatusProps) {
               <div className="space-y-1">
                 <Label className="text-xs font-bold">Nombre del punto de entrega *</Label>
                 <Input
-                  placeholder="Ej: Clínica Huellitas Digitales"
+                  placeholder="Ej: Clínica AnimalVet Digitales"
                   value={form.punto_entrega_nombre}
                   onChange={e => setForm(f => ({ ...f, punto_entrega_nombre: e.target.value }))}
                   className="rounded-xl h-9"

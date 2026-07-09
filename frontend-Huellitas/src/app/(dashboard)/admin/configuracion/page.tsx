@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card'
@@ -30,7 +30,7 @@ interface ConfigState {
 
 export default function ConfiguracionPage() {
   const [config, setConfig] = useState<ConfigState>({
-    nombreClinica: 'Veterinaria Huellitas',
+    nombreClinica: 'AnimalVet',
     slogan: '',
     ciudad: '',
     direccion: '',
@@ -58,7 +58,7 @@ export default function ConfiguracionPage() {
         data.forEach((item: any) => { m[item.clave] = item.valor; });
 
         setConfig({
-          nombreClinica:            m['nombre_clinica'] || 'Veterinaria Huellitas',
+          nombreClinica:            m['nombre_clinica'] || 'AnimalVet',
           slogan:                   m['clinica_slogan'] || '',
           ciudad:                   m['clinica_ciudad'] || '',
           direccion:                m['direccion'] || '',

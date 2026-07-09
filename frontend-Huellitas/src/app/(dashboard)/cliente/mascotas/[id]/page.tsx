@@ -29,7 +29,7 @@ import { hospitalizacionesService } from '@/domains/clinical/services/hospitaliz
 import { Mascota, Especie, Raza } from '@/domains/pets/pets.types'
 import { HistorialClinico } from '@/domains/clinical/clinical.types'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api/huellitas'
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api/animalvet'
 
 export default function PerfilMascotaPage() {
   const { id } = useParams()
@@ -124,7 +124,7 @@ export default function PerfilMascotaPage() {
       nombre: v.vacuna?.nombre ?? v.nombre_vacuna ?? 'Vacuna',
       fecha:  v.fecha_aplicacion ? v.fecha_aplicacion.split('T')[0] : '—',
       lote:   v.lote_vacuna ?? '—',
-      vet:    v.veterinario ? `${v.veterinario.nombres} ${v.veterinario.apellidos}` : 'Medico Huellitas',
+      vet:    v.veterinario ? `${v.veterinario.nombres} ${v.veterinario.apellidos}` : 'Médico AnimalVet',
       estado: 'Aplicada',
     }))
   )
@@ -170,7 +170,7 @@ export default function PerfilMascotaPage() {
     vacunas:   vacunasReales,
   }
 
-  const urlEmergenciaPublica = `https://huellitas-digitales.net/emergencia/${apiMascota.hash_qr_identidad}`
+  const urlEmergenciaPublica = `https://animalvet.vercel.app/emergencia/${apiMascota.hash_qr_identidad}`
 
   // Estado visual para hospitalizacion
   const HOSP_COLOR: Record<string, string> = {

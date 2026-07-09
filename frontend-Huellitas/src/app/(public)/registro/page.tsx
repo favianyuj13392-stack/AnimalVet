@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -106,7 +106,7 @@ export default function RegistroPage() {
           <div className="h-10 w-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
             <PawPrint className="h-6 w-6 text-white" />
           </div>
-          <span className="text-xl font-black tracking-tight">Huellitas Digitales</span>
+          <span className="text-xl font-black tracking-tight">AnimalVet Digitales</span>
         </div>
 
         {/* BENEFICIOS SLIDER O TESTIMONIAL MOCK */}
@@ -136,7 +136,7 @@ export default function RegistroPage() {
 
         {/* FOOTER IZQUIERDO */}
         <div className="text-xs text-white/60 relative z-10 flex justify-between">
-          <span>© 2026 Huellitas Digitales.</span>
+          <span>© 2026 AnimalVet Digitales.</span>
           <span className="flex items-center gap-1">
             Hecho con <Heart className="h-3 w-3 fill-white text-white" /> para mascotas.
           </span>

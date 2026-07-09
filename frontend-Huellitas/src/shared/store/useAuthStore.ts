@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+﻿import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 // 1. Así es exactamente como viene del backend
@@ -41,7 +41,7 @@ export const useAuthStore = create<AuthState>()(
       logout: () => {
         // Invalidar el token en el servidor con fetch nativo (evita circular dependency con axios)
         const token = useAuthStore.getState().access_token;
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/huellitas';
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/animalvet';
         if (token) {
           fetch(`${apiUrl}/auth/logout`, {
             method: 'POST',
@@ -53,6 +53,6 @@ export const useAuthStore = create<AuthState>()(
         document.cookie = "usuario_rol=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
       },
     }),
-    { name: 'huellitas-auth' }
+    { name: 'animalvet-auth' }
   )
 );

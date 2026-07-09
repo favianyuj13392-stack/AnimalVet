@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React from "react";
 import { Card, CardContent } from "@/shared/components/ui/card";
@@ -32,7 +32,7 @@ export function MedicalIdCard({ mascota }: MedicalIdCardProps) {
           <span className="text-white/80 text-[10px] uppercase font-bold tracking-widest">
             Carnet Veterinario Oficial
           </span>
-          <p className="text-white text-xl font-black">Huellitas Digitales</p>
+          <p className="text-white text-xl font-black">AnimalVet Digitales</p>
         </div>
         <div className="absolute bottom-4 right-6">
           <Badge className="bg-white/20 text-white border-0 font-bold backdrop-blur-sm">

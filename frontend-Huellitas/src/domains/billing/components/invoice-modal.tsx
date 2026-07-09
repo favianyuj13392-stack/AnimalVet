@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React from "react";
 import { Receipt, CheckCircle2 } from "lucide-react";
@@ -42,13 +42,13 @@ export function InvoiceModal({
             <Receipt className="h-5 w-5 text-primary" /> FACTURA OFICIAL
           </DialogTitle>
           <DialogDescription className="text-xs text-muted-foreground">
-            Clínica Veterinaria Huellitas Digitales SRL
+            AnimalVet Digitales SRL
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 pt-4 text-xs font-mono text-zinc-700 dark:text-zinc-300">
           <div className="text-center border-b pb-3 border-dashed space-y-1">
-            <p className="font-bold text-sm">HUELLITAS VET</p>
+            <p className="font-bold text-sm">ANIMALVET VET</p>
             <p>NIT: 288394028 • Autorización: 1993029940</p>
             <p>Av. Arce Edif. Los Pinos Nro. 2480</p>
             <p>La Paz - Bolivia</p>

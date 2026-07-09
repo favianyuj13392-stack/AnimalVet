@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState } from "react";
 import {
@@ -200,7 +200,7 @@ export default function CajaAgendaPage() {
     queryKey: ["mascotas-urgencia"],
     queryFn: () => mascotasService.getAll(),
     enabled: activeTab === "urgencias",
-    select: (data) => data.filter((m: any) => m.dueno?.email === "urgencias@huellitas.com"),
+    select: (data) => data.filter((m: any) => m.dueno?.email === "urgencias@animalvet.com"),
   });
 
   // ─── Query: mascotas del cliente a vincular ───────────────────────────────

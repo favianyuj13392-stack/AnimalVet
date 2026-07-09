@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React from "react";
 import {
@@ -174,7 +174,7 @@ export function PosCart({
           <div className="flex items-center gap-3 p-3 bg-card rounded-2xl border animate-in fade-in duration-300">
             <div className="bg-white p-1 rounded-lg border shrink-0">
               <div className="h-16 w-16 bg-zinc-950 flex items-center justify-center text-white text-[9px] font-bold text-center">
-                QR HUELLITAS
+                QR ANIMALVET
               </div>
             </div>
             <div>

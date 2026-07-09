@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useRef, useState } from "react";
 import Image from "next/image";
@@ -60,7 +60,7 @@ export function LoginForm() {
         <div className="absolute inset-0">
           <Image
             src="https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=1400&q=85"
-            alt="Huellitas — Veterinaria"
+            alt="AnimalVet — Veterinaria"
             fill
             className="object-cover object-center"
             priority
@@ -75,7 +75,7 @@ export function LoginForm() {
           {/* Logo */}
           <div className="flex items-center gap-2">
             <PawPrint className="h-5 w-5 text-primary" />
-            <span className="text-white font-bold text-lg tracking-tight">Huellitas</span>
+            <span className="text-white font-bold text-lg tracking-tight">AnimalVet</span>
           </div>
 
           {/* Texto inferior */}
@@ -109,7 +109,7 @@ export function LoginForm() {
           {/* Logo mobile */}
           <div className="flex items-center gap-2 lg:hidden">
             <PawPrint className="h-5 w-5 text-primary" />
-            <span className="font-bold text-primary text-lg">Huellitas</span>
+            <span className="font-bold text-primary text-lg">AnimalVet</span>
           </div>
 
           {otpPendiente ? (
@@ -176,7 +176,7 @@ export function LoginForm() {
                   <Label htmlFor="email" className="text-sm font-medium">Correo electrónico</Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input id="email" type="email" placeholder="doctor@huellitas.com"
+                    <Input id="email" type="email" placeholder="doctor@animalvet.com"
                       className={`pl-9 h-11 ${errors.email ? "border-destructive" : ""}`}
                       {...register("email")} />
                   </div>

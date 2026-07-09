@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState } from "react";
 import Link from "next/link";
@@ -33,7 +33,7 @@ export default function PublicNavbar() {
         <Link href="/" className="flex items-center transition-transform hover:scale-105">
           <Image
             src="/assets/Diseño sin título-Photoroom.png"
-            alt="Huellitas"
+            alt="AnimalVet"
             width={120}
             height={52}
             className="object-contain h-12 w-auto"
@@ -79,8 +79,8 @@ export default function PublicNavbar() {
             <SheetContent side="right" className="w-[300px] sm:w-[400px]">
               <SheetHeader>
                 <SheetTitle className="flex items-center gap-2">
-                  <Image src="/assets/Diseño sin título-Photoroom.png" alt="Huellitas" width={100} height={44} className="object-contain h-10 w-auto" />
-                  Huellitas
+                  <Image src="/assets/Diseño sin título-Photoroom.png" alt="AnimalVet" width={100} height={44} className="object-contain h-10 w-auto" />
+                  AnimalVet
                 </SheetTitle>
               </SheetHeader>
               <div className="flex flex-col gap-4 mt-8">

@@ -1,10 +1,10 @@
-import axios from 'axios';
+﻿import axios from 'axios';
 import { toast } from 'sonner';
 import {useAuthStore} from "@/shared/store/useAuthStore"; // Para acceder al token desde Zustand si es necesario
 
 const token = useAuthStore.getState().access_token; // Obtener el token directamente del store
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/huellitas',
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/animalvet',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -23,7 +23,7 @@ if (token) {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    let message = "Ocurrió un error inesperado en Huellitas";
+    let message = "Ocurrió un error inesperado en AnimalVet";
     
     if (error.response) {
       const backendMessage = error.response.data?.message;

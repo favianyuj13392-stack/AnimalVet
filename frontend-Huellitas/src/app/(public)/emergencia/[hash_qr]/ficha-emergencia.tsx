@@ -73,7 +73,7 @@ export default function FichaEmergenciaCliente() {
       <div className="min-h-screen flex items-center justify-center bg-muted/20 px-4">
         <div className="text-center space-y-3 max-w-sm">
           <p className="text-xl font-black text-foreground">Código QR no encontrado</p>
-          <p className="text-sm text-muted-foreground">Este código no está registrado en el sistema Huellitas Digitales.</p>
+          <p className="text-sm text-muted-foreground">Este código no está registrado en el sistema AnimalVet.</p>
         </div>
       </div>
     )
@@ -107,7 +107,7 @@ export default function FichaEmergenciaCliente() {
               <Heart className="h-5 w-5 fill-white" />
             </div>
             <h1 className="text-lg font-black text-foreground">Ficha Médica QR</h1>
-            <p className="text-xs text-muted-foreground">Sistema Huellitas Digitales</p>
+            <p className="text-xs text-muted-foreground">Sistema QR AnimalVet</p>
           </div>
         )}
 
@@ -242,7 +242,7 @@ export default function FichaEmergenciaCliente() {
 
       <div className="text-center pt-8 text-xs text-muted-foreground">
         <span>Sistema de Placas QR por </span>
-        <strong className="text-primary">Huellitas Digitales</strong>
+        <strong className="text-primary">AnimalVet</strong>
       </div>
     </div>
   )

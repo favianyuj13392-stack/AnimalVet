@@ -8,7 +8,7 @@ export default defineConfig({
   timeout: 30000,
 
   use: {
-    baseURL: process.env.BASE_URL || 'https://frontend-huellitas.vercel.app/',
+    baseURL: process.env.BASE_URL || 'https://animalvet.vercel.app/',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'on-first-retry',

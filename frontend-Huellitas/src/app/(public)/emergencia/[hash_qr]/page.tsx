@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
 import FichaEmergenciaCliente from './ficha-emergencia'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api/huellitas'
-const SITE_URL = 'https://huellitas-digitales.net'
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api/animalvet'
+const SITE_URL = 'https://animalvet.vercel.app'
 
 interface Props {
   params: Promise<{ hash_qr: string }>
@@ -18,12 +18,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     if (!data || data.statusCode) throw new Error('not found')
 
     const titulo    = data.estado_perdido
-      ? `🚨 ¡Ayuda a encontrar a ${data.nombre}! — Huellitas Digitales`
-      : `🐾 ${data.nombre} — Ficha Médica QR | Huellitas Digitales`
+      ? `🚨 ¡Ayuda a encontrar a ${data.nombre}! — AnimalVet`
+      : `🐾 ${data.nombre} — Ficha Médica QR | AnimalVet`
 
     const descripcion = data.estado_perdido
       ? `${data.nombre} está extraviado/a. ${data.especie} ${data.raza}${data.caracteristicas_fisicas ? ` · ${data.caracteristicas_fisicas}` : ''}. Si lo/la ves, por favor contacta al dueño.`
-      : `Ficha médica de ${data.nombre}. ${data.especie} ${data.raza} · ${data.sexo}. Sistema QR de Huellitas Digitales.`
+      : `Ficha médica de ${data.nombre}. ${data.especie} ${data.raza} · ${data.sexo}. Sistema QR de AnimalVet.`
 
     const imagen = data.foto_url ?? `${SITE_URL}/og-default.png`
     const url    = `${SITE_URL}/emergencia/${hash_qr}`
@@ -35,7 +35,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         title:       titulo,
         description: descripcion,
         url,
-        siteName:    'Huellitas Digitales',
+        siteName:    'AnimalVet',
         images: [
           {
             url:    imagen,
@@ -56,10 +56,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
   } catch {
     return {
-      title:       '🐾 Ficha de Emergencia — Huellitas Digitales',
+      title:       '🐾 Ficha de Emergencia — AnimalVet',
       description: 'Sistema de placas QR para mascotas. Escanea para ver datos médicos de emergencia.',
       openGraph: {
-        title:       '🐾 Ficha de Emergencia — Huellitas Digitales',
+        title:       '🐾 Ficha de Emergencia — AnimalVet',
         description: 'Sistema de placas QR para mascotas.',
         images:      [{ url: `${SITE_URL}/og-default.png` }],
       },
