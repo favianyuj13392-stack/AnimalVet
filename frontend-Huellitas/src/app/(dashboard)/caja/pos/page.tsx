@@ -160,6 +160,9 @@ export default function CajaPosPage() {
     limpiarCaja();
     queryClient.invalidateQueries({ queryKey: ["transacciones-pos"] });
     queryClient.invalidateQueries({ queryKey: ["hospitalizaciones-pos"] });
+    queryClient.invalidateQueries({ queryKey: ["todos-pendientes-cobro-pos"] });
+    queryClient.invalidateQueries({ queryKey: ["reporte-cajero"] });
+    queryClient.invalidateQueries({ queryKey: ["mis-transacciones"] });
     toast.success("Cobro procesado correctamente");
   };
 
@@ -199,7 +202,7 @@ export default function CajaPosPage() {
         descuento: descuentoAplicado,
         motivo_descuento: descuentoAplicado > 0 ? motivoDescuento : undefined,
         turno: turnoSel,
-        id_servicio_hospitalizacion_fk: 4,
+        // No se envía id_servicio_hospitalizacion_fk; el backend usa fallback de costo clínico directo
       }),
     onSuccess: onSuccessVenta,
   });
@@ -216,7 +219,7 @@ export default function CajaPosPage() {
       // Capturar todas las transacciones Completadas creadas después del último cierre
       const txCierre = (transacciones as any[]).filter((t) => {
         try {
-          return t.estado === "Completada" && new Date(t.createdAt) > desdeFecha;
+          return t.estadoTransaccion === "Completada" && new Date(t.createdAt) > desdeFecha;
         } catch { return false; }
       });
 

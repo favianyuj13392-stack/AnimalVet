@@ -119,7 +119,7 @@ export class HospitalizacionesService {
     if (estado) where.estadoActual = estado;
     const hospitalizaciones = await this.hospitalizacionRepo.find({
       where,
-      relations: ['mascota', 'mascota.raza', 'veterinario', 'insumos', 'vacunasAplicadas'],
+      relations: ['mascota', 'mascota.raza', 'veterinario', 'insumos', 'insumos.producto', 'insumos.servicio', 'vacunasAplicadas', 'vacunasAplicadas.vacuna'],
       order: { fechaIngreso: 'DESC' },
     });
     return hospitalizaciones.map(h => this.mapToResponse(h));
@@ -154,6 +154,7 @@ export class HospitalizacionesService {
     if (updateDto.condicion_egreso !== undefined)    hospitalizacion.condicionEgreso   = updateDto.condicion_egreso;
     if (updateDto.diagnostico_egreso !== undefined)  hospitalizacion.diagnosticoEgreso  = updateDto.diagnostico_egreso;
     if (updateDto.instrucciones_alta !== undefined)  hospitalizacion.instruccionesAlta  = updateDto.instrucciones_alta;
+    if (updateDto.costo_por_dia !== undefined)        hospitalizacion.costoPorDia        = updateDto.costo_por_dia;
     hospitalizacion.updatedBy = updaterId;
 
     const guardada = await this.hospitalizacionRepo.save(hospitalizacion);

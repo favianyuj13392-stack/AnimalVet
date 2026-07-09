@@ -30,9 +30,10 @@ export const useAuthStore = create<AuthState>()(
       access_token: null,
       setLogin: (user, access_token) => {
   set({ user, access_token });
-  // Seteamos la cookie para que el middleware de Next.js la lea
+  // Sync both cookies so Next.js middleware always has fresh role + token
   console.log('Setting cookie with token:', access_token);
   document.cookie = `usuario_token=${access_token}; path=/; max-age=86400; secure; samesite=strict`;
+  document.cookie = `usuario_rol=${user.rol.nombre}; path=/; max-age=86400;`;
 },
       updateUser: (partial) => set((state) => ({
         user: state.user ? { ...state.user, ...partial } : null,

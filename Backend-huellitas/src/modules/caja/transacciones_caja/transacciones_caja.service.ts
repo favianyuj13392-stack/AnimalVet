@@ -21,6 +21,7 @@ type LineaPreparada = {
   precioUnitario: number;
   subtotalLinea: number;
   producto?: Producto;
+  servicio?: Servicio;
   lotesConsumo: Array<{ lote: LoteCaducidad; cantidad: number }>;
   descontarStock: boolean;
 };
@@ -83,10 +84,31 @@ export class TransaccionesCajaService {
       const productoRepo = manager.getRepository(Producto);
       const loteRepo = manager.getRepository(LoteCaducidad);
       const kardexRepo = manager.getRepository(KardexInventario);
+      const servicioRepo = manager.getRepository(Servicio);
 
       const lineas: LineaPreparada[] = [];
 
       for (const detalle of createDto.detalles) {
+        // ── SERVICE SALE (no stock, no kardex) ──────────────────────
+        if (detalle.id_servicio_fk) {
+          const servicio = await servicioRepo.findOne({ where: { id: detalle.id_servicio_fk } });
+          if (!servicio) throw new NotFoundException(`Servicio con ID ${detalle.id_servicio_fk} no existe.`);
+          const precioUnitario = detalle.precio_unitario ?? Number(servicio.precio);
+          lineas.push({
+            dto: detalle,
+            precioUnitario,
+            subtotalLinea: this.roundMoney(precioUnitario * detalle.cantidad),
+            servicio,
+            lotesConsumo: [],
+            descontarStock: false,
+          });
+          continue;
+        }
+
+        // ── PRODUCT SALE (stock + kardex) ────────────────────────────
+        if (!detalle.id_producto_fk) {
+          throw new BadRequestException('Cada detalle debe incluir id_producto_fk o id_servicio_fk.');
+        }
         const producto = await productoRepo.findOne({
           where: { id: detalle.id_producto_fk },
           lock: { mode: 'pessimistic_write' },
@@ -159,8 +181,8 @@ export class TransaccionesCajaService {
 
         const nuevoDetalle = new DetalleTransaccion();
         nuevoDetalle.id_transaccion_fk = transaccion.id;
-        nuevoDetalle.id_producto_fk = linea.dto.id_producto_fk;
-        nuevoDetalle.id_servicio_fk = null;
+        nuevoDetalle.id_producto_fk = linea.producto ? linea.dto.id_producto_fk! : null;
+        nuevoDetalle.id_servicio_fk = linea.servicio ? linea.servicio.id : null;
         nuevoDetalle.id_receta_fk = null;
         nuevoDetalle.id_lote_fk = linea.lotesConsumo.length === 1 ? linea.lotesConsumo[0].lote.id : (linea.dto.id_lote_fk ?? null);
         nuevoDetalle.cantidad = linea.dto.cantidad;

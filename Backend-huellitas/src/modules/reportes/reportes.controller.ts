@@ -19,18 +19,20 @@ export class ReportesController {
   constructor(private readonly reportesService: ReportesService) {}
 
   private parseDates(inicioStr?: string, finStr?: string) {
+    // Bolivia is UTC-4. Explicit offset prevents Vercel (UTC) from shifting dates.
+    const BOLIVIA_OFFSET = '-04:00';
     let inicio = new Date();
     inicio.setFullYear(inicio.getFullYear() - 1);
     let fin = new Date();
-    fin.setFullYear(fin.getFullYear() + 1); // incluir citas futuras
+    fin.setFullYear(fin.getFullYear() + 1); // include future appointments
 
     if (inicioStr) {
-      inicio = new Date(`${inicioStr}T00:00:00`);
+      inicio = new Date(`${inicioStr}T00:00:00${BOLIVIA_OFFSET}`);
       if (isNaN(inicio.getTime()))
         throw new BadRequestException('fecha_inicio inválida. Use formato YYYY-MM-DD.');
     }
     if (finStr) {
-      fin = new Date(`${finStr}T23:59:59.999`);
+      fin = new Date(`${finStr}T23:59:59.999${BOLIVIA_OFFSET}`);
       if (isNaN(fin.getTime()))
         throw new BadRequestException('fecha_fin inválida. Use formato YYYY-MM-DD.');
     }

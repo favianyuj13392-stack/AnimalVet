@@ -258,7 +258,7 @@ export default function ListadoMascotasPage() {
 
                       <div className="flex justify-end gap-2 mt-4 border-t pt-4">
                         <Button variant="outline" size="sm" asChild>
-                          <Link href={`/vet/expediente?id=${mascota.id}`}>
+                          <Link href={`/vet/expediente/${mascota.id}`}>
                             <MapPin className="mr-1 h-3 w-3" /> Expediente
                           </Link>
                         </Button>

@@ -57,4 +57,12 @@ export class CatalogoVacunasController {
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.vacunasService.remove(id);
   }
+
+  @Post(':id/activar')
+  @Roles('Administrador')
+  @ApiOperation({ summary: 'Reactivar una vacuna previamente desactivada' })
+  @ApiResponse({ status: 200, description: 'Vacuna reactivada.' })
+  activar(@Param('id', ParseIntPipe) id: number) {
+    return this.vacunasService.activate(id);
+  }
 }

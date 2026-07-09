@@ -30,14 +30,15 @@ api.interceptors.response.use(
       switch (error.response.status) {
         case 401:
           const isLoginRequest = error.config?.url?.includes('/auth/login');
-          if (!isLoginRequest) {
+          const isPasswordVerify = error.config?.url?.includes('/auth/verificar-password');
+          if (!isLoginRequest && !isPasswordVerify) {
             message = "Sesión expirada. Por favor, inicia sesión de nuevo.";
             useAuthStore.getState().logout();
             if (typeof window !== 'undefined') {
               window.location.href = '/login';
             }
           } else {
-            message = backendMessage || "Usuario o contraseña incorrectos.";
+            message = backendMessage || (isPasswordVerify ? "Contraseña incorrecta." : "Usuario o contraseña incorrectos.");
           }
           break;
         case 403: message = backendMessage || "No tienes permisos para realizar esta acción."; break;

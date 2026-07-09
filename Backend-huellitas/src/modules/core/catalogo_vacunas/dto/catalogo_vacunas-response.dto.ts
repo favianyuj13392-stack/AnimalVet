@@ -7,7 +7,9 @@ export class CatalogoVacunasResponseDto {
   nombre_vacuna: string;
   descripcion: string | null;
   intervalo_revacunacion: string;
-  id_especie_fk: number; // 👈 Agregar
+  id_especie_fk: number;
+  id_producto_fk?: string;
+  deletedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
   producto?: {
@@ -16,7 +18,7 @@ export class CatalogoVacunasResponseDto {
     precio_venta: number;
     stock_actual: number;
   };
-  especie?: {            // 👈 Agregar
+  especie?: {
     id: number;
     nombre: string;
   };

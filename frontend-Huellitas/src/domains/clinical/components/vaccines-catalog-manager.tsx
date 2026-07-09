@@ -46,7 +46,7 @@ console.log("Vacunas cargadas:", vacunas);
     reset({
       nombre: vacuna.nombre_vacuna,
       descripcion: vacuna.descripcion || "",
-      diasParaRefuerzo: Number(vacuna.intervalo_revacunacion) || 365,
+      diasParaRefuerzo: parseInt(vacuna.intervalo_revacunacion, 10) || 365,
       id_especie_fk: vacuna.id_especie_fk,
       id_producto_fk: vacuna.id_producto_fk || undefined // <-- Cargamos el enlace actual
     });

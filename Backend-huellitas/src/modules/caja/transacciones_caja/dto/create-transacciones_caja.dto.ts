@@ -12,9 +12,16 @@ import {
 } from 'class-validator';
 
 export class CreateDetalleVentaProductoDto {
-  @ApiProperty({ example: 'uuid-producto', description: 'UUID del producto vendido en mostrador.' })
+  @ApiPropertyOptional({ example: 'uuid-producto', description: 'UUID del producto vendido en mostrador. Requerido si no se envía id_servicio_fk.' })
+  @IsOptional()
   @IsUUID('all')
-  id_producto_fk: string;
+  id_producto_fk?: string;
+
+  @ApiPropertyOptional({ example: 1, description: 'ID numérico del servicio vendido. Requerido si no se envía id_producto_fk. No descuenta stock.' })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  id_servicio_fk?: number;
 
   @ApiPropertyOptional({ example: 'uuid-lote', description: 'Lote especifico a consumir. Si no se envia, el backend usa FIFO por vencimiento.' })
   @IsOptional()
