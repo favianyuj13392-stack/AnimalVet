@@ -35,12 +35,12 @@ export default function DoctorDashboardPage() {
   const { data: financiero, refetch: refetchFinanciero } = useQuery({
     queryKey: ["vet-dashboard-financiero"],
     queryFn: async () => {
-      // Obtener el reporte del día de hoy
       return reportesService.getFinanciero({
         fecha_inicio: todayStr,
         fecha_fin: todayStr
       }).catch(() => ({ total_ingresos: 0, total_transacciones: 0, transacciones: [] }));
-    }
+    },
+    enabled: user?.rol?.id === 1
   });
 
   const { data: citas = [], refetch: refetchCitas } = useQuery({
@@ -76,7 +76,9 @@ export default function DoctorDashboardPage() {
 
     socket.on("citaActualizada", () => {
       // Recargar datos en tiempo real cuando la esposa cobre o cambie una cita
-      refetchFinanciero();
+      if (user?.rol?.id === 1) {
+        refetchFinanciero();
+      }
       refetchCitas();
       refetchHosp();
     });
@@ -108,25 +110,27 @@ export default function DoctorDashboardPage() {
       </div>
 
       {/* METRICS ROW */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className={`grid grid-cols-1 md:grid-cols-${user?.rol?.id === 1 ? 4 : 3} gap-6`}>
         
         {/* RECAUDACIÓN HOY */}
-        <Card className="rounded-3xl border-border/40 bg-card/30 backdrop-blur-sm shadow-sm overflow-hidden">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-bold text-muted-foreground">Recaudación de Hoy</CardTitle>
-            <div className="p-2 bg-emerald-500/10 rounded-2xl">
-              <DollarSign className="h-5 w-5 text-emerald-500" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-black text-foreground">
-              {financiero?.total_ingresos ? Number(financiero.total_ingresos).toFixed(2) : "0.00"} <span className="text-lg font-medium">Bs</span>
-            </div>
-            <p className="text-xs text-muted-foreground mt-2">
-              Cobrado en caja por {financiero?.total_transacciones || 0} transacciones.
-            </p>
-          </CardContent>
-        </Card>
+        {user?.rol?.id === 1 && (
+          <Card className="rounded-3xl border-border/40 bg-card/30 backdrop-blur-sm shadow-sm overflow-hidden">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-bold text-muted-foreground">Recaudación de Hoy</CardTitle>
+              <div className="p-2 bg-emerald-500/10 rounded-2xl">
+                <DollarSign className="h-5 w-5 text-emerald-500" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-black text-foreground">
+                {financiero?.total_ingresos ? Number(financiero.total_ingresos).toFixed(2) : "0.00"} <span className="text-lg font-medium">Bs</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Cobrado en caja por {financiero?.total_transacciones || 0} transacciones.
+              </p>
+            </CardContent>
+          </Card>
+        )}
 
         {/* PACIENTES ATENDIDOS */}
         <Card className="rounded-3xl border-border/40 bg-card/30 backdrop-blur-sm shadow-sm overflow-hidden">

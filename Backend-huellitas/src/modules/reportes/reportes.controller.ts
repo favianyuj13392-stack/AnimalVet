@@ -110,7 +110,7 @@ export class ReportesController {
 
   // ── Stock crítico e inventario ──────────────────────────────────────────
   @Get('inventario')
-  @Roles('Administrador')
+  @Roles('Administrador', 'Veterinario')
   @ApiOperation({ summary: 'Inventario completo y productos bajo stock mínimo (HU-33)' })
   @ApiResponse({ status: 200, description: 'Reporte de inventario.' })
   async obtenerReporteInventario() {
@@ -119,7 +119,7 @@ export class ReportesController {
 
   // ── Lotes próximos a vencer ─────────────────────────────────────────────
   @Get('lotes-por-vencer')
-  @Roles('Administrador')
+  @Roles('Administrador', 'Veterinario')
   @ApiOperation({ summary: 'Lotes de productos próximos a vencer (HU-23). Por defecto: 60 días.' })
   @ApiQuery({ name: 'dias', required: false, description: 'Horizonte en días (default: 60)' })
   @ApiResponse({ status: 200, description: 'Lotes próximos a vencer.' })
