@@ -131,26 +131,26 @@ async function main() {
   const usersToSeed = [
     {
       id: ADMIN_UUID,
-      email: 'admin@huellitas.com',
+      email: 'admin@animalvet.com',
       hash: '$2b$12$w/zz2rNzMZRVEueHSEHtj.OzyZ.7ebEx2MNR8RASEJfF7mmosx2x6', // admin123
       nombres: 'Admin',
-      apellidos: 'Huellitas',
+      apellidos: 'AnimalVet',
       rol: 1
     },
     {
       id: VET_UUID,
-      email: 'veterinario@huellitas.com',
+      email: 'veterinario@animalvet.com',
       hash: '$2b$12$COwTzPGPS9dU1zS9gIi1keWZbdYIMewDnU0/HKJRIo0Fo4a2u6O9G', // vet123
       nombres: 'Veterinario',
-      apellidos: 'Huellitas',
+      apellidos: 'AnimalVet',
       rol: 2
     },
     {
       id: CAJERO_UUID,
-      email: 'cajero@huellitas.com',
+      email: 'cajero@animalvet.com',
       hash: '$2b$12$mETIZn2U/XTKkTdN/CcljepUGDmid7IEpfHkvsCjpCirvYIbxjmUq', // cajero123
       nombres: 'Cajero',
-      apellidos: 'Huellitas',
+      apellidos: 'AnimalVet',
       rol: 3
     },
     {
@@ -171,15 +171,15 @@ async function main() {
     },
     {
       id: CLIENT3_UUID,
-      email: 'cliente@huellitas.com',
+      email: 'cliente@animalvet.com',
       hash: '$2b$12$MRarxQ2eqxCYQRGm8RaAp.6xSMReAh4nFUWIG0IIxNo6W9tRMw.ZK', // cliente123
       nombres: 'Cliente',
-      apellidos: 'Huellitas',
+      apellidos: 'AnimalVet',
       rol: 4
     },
     {
       id: CLIENT_URG_UUID,
-      email: 'urgencias@huellitas.com',
+      email: 'urgencias@animalvet.com',
       hash: '$2b$12$WildcardUserPlaceholderPasswordHashDoNotUseToLogIn',
       nombres: 'Cliente Genérico',
       apellidos: 'de Urgencias',
@@ -204,12 +204,12 @@ async function main() {
 
   console.log("Seeding clinical configuration...");
   const configs = [
-    { key: 'nombre_clinica', val: 'Clínica Veterinaria Huellitas', desc: 'Nombre de la Clínica' },
+    { key: 'nombre_clinica', val: 'AnimalVet', desc: 'Nombre de la Clínica' },
     { key: 'clinica_slogan', val: 'Cuidamos a los que más querés con tecnología y amor', desc: 'Slogan' },
     { key: 'clinica_ciudad', val: 'Santa Cruz', desc: 'Ciudad de operación' },
     { key: 'direccion', val: 'Av. Banzer entre 3er y 4to Anillo', desc: 'Dirección física' },
     { key: 'telefono', val: '33123456', desc: 'Teléfono de contacto' },
-    { key: 'email', val: 'contacto@huellitas.com', desc: 'Correo institucional' },
+    { key: 'email', val: 'contacto@animalvet.com', desc: 'Correo institucional' },
     { key: 'moneda_simbolo', val: 'Bs.', desc: 'Símbolo monetario' },
     { key: 'moneda_nombre', val: 'Boliviano', desc: 'Nombre oficial de la moneda' },
     { key: 'descuento_maximo', val: '20', desc: 'Descuento máximo para POS' },
@@ -672,9 +672,9 @@ async function main() {
   console.log("Sembrado de datos finalizado con éxito.");
   console.log(`====================================================
   DATOS LISTOS PARA DEMOSTRACIÓN DE PRODUCTO (CON FECHAS RELATIVAS A HOY):
-  - Admin: admin@huellitas.com / admin123
-  - Veterinario: veterinario@huellitas.com / vet123
-  - Cajero: cajero@huellitas.com / cajero123
+  - Admin: admin@animalvet.com / admin123
+  - Veterinario: veterinario@animalvet.com / vet123
+  - Cajero: cajero@animalvet.com / cajero123
   - Cliente Favian: favian.flores@example.com / cliente123
   
   FLUJOS LISTOS PARA PRESENTAR:
