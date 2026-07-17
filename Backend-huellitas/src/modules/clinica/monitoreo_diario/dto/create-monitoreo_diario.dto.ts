@@ -50,4 +50,40 @@ export class CreateMonitoreoDiarioDto {
   @IsString()
   @IsNotEmpty()
   observaciones: string;
+
+  @IsString()
+  @IsOptional()
+  vomito_diarrea_convulsion?: string;
+
+  @IsString()
+  @IsOptional()
+  presion?: string;
+
+  @IsInt()
+  @IsOptional()
+  @Type(() => Number)
+  spo2?: number;
+
+  @IsString()
+  @IsOptional()
+  tllc?: string;
+
+  @IsString()
+  @IsOptional()
+  mucosa?: string;
+
+  @IsNumber()
+  @IsOptional()
+  @Type(() => Number)
+  peso_kg?: number;
+
+  @IsInt()
+  @IsOptional()
+  @Type(() => Number)
+  produccion_orina_ml?: number;
+
+  @IsInt()
+  @IsOptional()
+  @Type(() => Number)
+  glasgow?: number;
 }

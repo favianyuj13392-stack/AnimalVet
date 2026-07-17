@@ -38,6 +38,17 @@ private mapToResponse(expediente: ExpedienteClinico): ExpedienteClinicoResponseD
           tipo_atencion: h.tipo_atencion,
           triaje_completado: h.triaje_completado,
           estado: h.estado,
+          turno: h.turno ?? undefined,
+          mucosas: h.mucosas ?? undefined,
+          anamnesis: h.anamnesis ?? undefined,
+          diagnostico_presuntivo: h.diagnostico_presuntivo ?? undefined,
+          diagnostico_definitivo: h.diagnostico_definitivo ?? undefined,
+          exam_ecografia: h.exam_ecografia,
+          exam_rayos_x: h.exam_rayos_x,
+          exam_hemograma: h.exam_hemograma,
+          exam_quimica_sanguinea: h.exam_quimica_sanguinea,
+          exam_otros: h.exam_otros,
+          exam_resultados: h.exam_resultados ?? undefined,
           veterinario: h.veterinario ? {
             id: h.veterinario.id,
             nombres: h.veterinario.nombres,
@@ -105,7 +116,14 @@ private mapToResponse(expediente: ExpedienteClinico): ExpedienteClinicoResponseD
               nombre_archivo: a.nombreArchivo,
               tipo_estudio: a.tipoEstudio,
               fecha_estudio: a.fechaEstudio,
-            })) : []
+            })) : [],
+
+            articulos: h.hospitalizacion.articulosIngresoList ? h.hospitalizacion.articulosIngresoList.map((art: any) => ({
+              id: art.id,
+              descripcion: art.descripcion,
+              cantidad: art.cantidad,
+              observacion: art.observacion,
+            })) : [],
           } : undefined,
         };
 
@@ -161,6 +179,90 @@ private mapToResponse(expediente: ExpedienteClinico): ExpedienteClinicoResponseD
           }));
         }
 
+        if (h.seguimientos) {
+          hDto.seguimientos = h.seguimientos.map(s => ({
+            id: s.id,
+            fecha: s.fecha,
+            hora: s.hora,
+            estado: s.estado,
+            motivo: s.motivo,
+            sintomas: s.sintomas ?? undefined,
+            observaciones: s.observaciones ?? undefined,
+            tratamiento: s.tratamiento ?? undefined,
+            diagnostico_actual: s.diagnosticoActual ?? undefined,
+            recomendaciones: s.recomendaciones ?? undefined,
+            peso_kg: s.pesoKg ? Number(s.pesoKg) : undefined,
+            temperatura_c: s.temperaturaC ? Number(s.temperaturaC) : undefined,
+            frecuencia_cardiaca: s.frecuenciaCardiaca ?? undefined,
+            frecuencia_respiratoria: s.frecuenciaRespiratoria ?? undefined,
+            mucosas: s.mucosas ?? undefined,
+            veterinario: s.veterinario ? {
+              id: s.veterinario.id,
+              nombres: s.veterinario.nombres,
+              apellidos: s.veterinario.apellidos,
+            } : undefined,
+            recetas: s.recetas ? s.recetas.map(r => ({
+              id: r.id,
+              indicaciones_grales: r.indicacionesGrales,
+              detalles: r.detalles ? r.detalles.map(d => ({
+                id: d.id,
+                medicamento_texto: d.medicamentoTexto ?? undefined,
+                dosis: d.dosis,
+                frecuencia: d.frecuencia,
+                duracion_dias: d.duracionDias ?? undefined,
+                producto: d.producto ? {
+                  id: d.producto.id,
+                  nombre: d.producto.nombre,
+                } : undefined,
+              })) : [],
+            })) : [],
+          }));
+        }
+
+        if (h.informes) {
+          hDto.informes = h.informes.map(inf => ({
+            id: inf.id,
+            tipo: inf.tipo,
+            estado: inf.estado,
+            titulo: inf.titulo,
+            comentario_clinico: inf.comentarioClinico ?? undefined,
+            conclusion: inf.conclusion ?? undefined,
+            recomendaciones: inf.recomendaciones ?? undefined,
+            fecha: inf.fecha,
+            veterinario: inf.veterinario ? {
+              id: inf.veterinario.id,
+              nombres: inf.veterinario.nombres,
+              apellidos: inf.veterinario.apellidos,
+            } : undefined,
+            imagenes: inf.imagenes ?? [],
+            pdf_generado: inf.pdfGenerado ?? undefined,
+            datos_estructurados: inf.datosEstructurados ?? undefined,
+          }));
+        }
+
+        if (h.examenesSolicitados) {
+          hDto.examenes_solicitados = h.examenesSolicitados.map(ex => ({
+            id: ex.id,
+            tipo: ex.tipo,
+            estado: ex.estado,
+            fecha_solicitud: ex.fechaSolicitud,
+            fecha_realizacion: ex.fechaRealizacion ?? undefined,
+            informe_id: ex.informeId ?? undefined,
+          }));
+        }
+
+        if (h.patologias) {
+          hDto.patologias = h.patologias.map(p => ({
+            id: p.id,
+            tipo: p.tipo,
+            patologia: p.patologia ? {
+              id: p.patologia.id,
+              nombre: p.patologia.nombre,
+              codigoCie: p.patologia.codigoCie,
+            } : undefined,
+          }));
+        }
+
         return hDto;
       }) : [],
     };
@@ -206,7 +308,19 @@ private getRelations() {
       'historiales.hospitalizacion.archivos',
       'historiales.hospitalizacion.vacunasAplicadas',
       'historiales.hospitalizacion.vacunasAplicadas.vacuna',
-      'historiales.hospitalizacion.vacunasAplicadas.vacuna.producto' // <- NUEVO: Traer producto de vacuna hosp.
+      'historiales.hospitalizacion.vacunasAplicadas.vacuna.producto', // <- NUEVO: Traer producto de vacuna hosp.
+      'historiales.seguimientos',
+      'historiales.seguimientos.veterinario',
+      'historiales.seguimientos.recetas',
+      'historiales.seguimientos.recetas.detalles',
+      'historiales.seguimientos.recetas.detalles.producto',
+      'historiales.informes',
+      'historiales.informes.veterinario',
+      'historiales.examenesSolicitados',
+      'historiales.examenesSolicitados.informe',
+      'historiales.patologias',
+      'historiales.patologias.patologia',
+      'historiales.hospitalizacion.articulosIngresoList',
     ];
   }
   async findByMascota(idMascota: string): Promise<ExpedienteClinicoResponseDto> {

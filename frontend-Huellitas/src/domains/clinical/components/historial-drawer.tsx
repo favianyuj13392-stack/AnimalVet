@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   X, ClipboardList, Scale, Thermometer, Activity,
   HeartPulse, Stethoscope, FileText, Syringe, Loader2,
-  Paperclip, ChevronDown, ChevronUp, Eye,
+  Paperclip, ChevronDown, ChevronUp, Eye, AlertTriangle,
 } from "lucide-react";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
@@ -41,7 +41,9 @@ function ConsultaCard({ h, idx, total }: { h: any; idx: number; total: number })
 
   const vacunas = h.vacunas_aplicadas ?? [];
   const recetas = h.recetas ?? [];
-  const archivos = h.archivosAdjuntos ?? [];
+  const archivos = h.archivos_adjuntos ?? h.archivosAdjuntos ?? [];
+  const patologias = h.patologias ?? [];
+  const seguimientos = h.seguimientos ?? [];
 
   return (
     <div className="rounded-2xl border border-border/40 bg-card/40 overflow-hidden">
@@ -95,13 +97,91 @@ function ConsultaCard({ h, idx, total }: { h: any; idx: number; total: number })
               </div>
             )}
 
-            {h.diagnostico && (
+            {patologias.length > 0 ? (
+              <div className="space-y-1.5 p-3 rounded-2xl bg-muted/20 border border-border/20">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Diagnósticos Registrados</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                  <div className="space-y-1">
+                    <span className="text-[10px] text-yellow-600 dark:text-yellow-400 font-bold uppercase tracking-wider block">Presuntivos:</span>
+                    <div className="flex flex-wrap gap-1">
+                      {patologias.filter((p: any) => p.tipo === 'PRESUNTIVO').map((p: any) => (
+                        <Badge key={p.id} variant="secondary" className="text-[10px] bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border border-yellow-500/20 px-2 py-0.5 rounded-md">
+                          {p.patologia?.nombre}
+                        </Badge>
+                      ))}
+                      {patologias.filter((p: any) => p.tipo === 'PRESUNTIVO').length === 0 && <span className="text-[10px] text-muted-foreground italic">Ninguno</span>}
+                    </div>
+                  </div>
+                  <div className="space-y-1 border-t md:border-t-0 md:border-l border-border/20 md:pl-3 pt-2 md:pt-0">
+                    <span className="text-[10px] text-green-600 dark:text-green-400 font-bold uppercase tracking-wider block">Definitivos:</span>
+                    <div className="flex flex-wrap gap-1">
+                      {patologias.filter((p: any) => p.tipo === 'DEFINITIVO').map((p: any) => (
+                        <Badge key={p.id} variant="secondary" className="text-[10px] bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20 px-2 py-0.5 rounded-md">
+                          {p.patologia?.nombre}
+                        </Badge>
+                      ))}
+                      {patologias.filter((p: any) => p.tipo === 'DEFINITIVO').length === 0 && <span className="text-[10px] text-muted-foreground italic">Ninguno</span>}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : h.diagnostico ? (
               <div className="flex items-start gap-2">
                 <Stethoscope className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Diagnóstico</p>
                   <p className="text-sm font-semibold text-foreground">{h.diagnostico}</p>
                 </div>
+              </div>
+            ) : null}
+
+            {seguimientos.length > 0 && (
+              <div className="space-y-2 border-t pt-3 mt-3">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Seguimientos Clínicos Registrados</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {seguimientos.map((ev: any) => (
+                    <div key={ev.id} className="p-2.5 border rounded-xl bg-card text-[11px] space-y-1">
+                      <div className="flex items-center justify-between border-b pb-1 mb-1 border-border/30">
+                        <span className="font-bold text-primary">Control</span>
+                        <span className="text-[9px] text-muted-foreground">{new Date(ev.fecha).toLocaleDateString("es-BO")} {ev.hora}</span>
+                      </div>
+                      <p><span className="font-semibold text-muted-foreground">Motivo:</span> {ev.motivo}</p>
+                      {ev.sintomas && <p><span className="font-semibold text-muted-foreground">Síntomas:</span> {ev.sintomas}</p>}
+                      {ev.observaciones && <p><span className="font-semibold text-muted-foreground">Obs:</span> {ev.observaciones}</p>}
+                      {ev.tratamiento && <p><span className="font-semibold text-muted-foreground">Tratamiento:</span> {ev.tratamiento}</p>}
+                      {ev.diagnostico_actual && <p><span className="font-semibold text-muted-foreground">Diagnóstico Act:</span> {ev.diagnostico_actual}</p>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {h.hospitalizacion && (
+              <div className="p-3 border border-dashed rounded-2xl bg-destructive/5 border-destructive/10 space-y-2">
+                <p className="text-[10px] font-bold uppercase text-destructive flex items-center gap-1">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0" /> Hospitalización (Internación)
+                </p>
+                <p className="text-xs text-foreground/80"><span className="font-semibold">Motivo:</span> {h.hospitalizacion.motivo_ingreso}</p>
+                <div className="flex items-center gap-1.5 text-xs text-foreground/80">
+                  <span className="font-semibold">Estado Actual:</span> 
+                  <Badge className="text-[9px] px-1.5 py-0 uppercase bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                    {h.hospitalizacion.estado_actual}
+                  </Badge>
+                </div>
+                
+                {h.hospitalizacion.articulos && h.hospitalizacion.articulos.length > 0 && (
+                  <div className="pt-2 border-t border-destructive/10 mt-2">
+                    <p className="text-[9px] font-bold uppercase text-muted-foreground mb-1.5">Artículos de Ingreso:</p>
+                    <div className="space-y-1">
+                      {h.hospitalizacion.articulos.map((art: any) => (
+                        <div key={art.id} className="flex justify-between items-center text-xs p-1.5 bg-card border rounded-lg">
+                          <span>{art.descripcion} <span className="text-muted-foreground">x{art.cantidad}</span></span>
+                          {art.observacion && <span className="text-[10px] text-muted-foreground italic">({art.observacion})</span>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

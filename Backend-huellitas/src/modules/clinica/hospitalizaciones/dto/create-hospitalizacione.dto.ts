@@ -51,4 +51,12 @@ export class CreateHospitalizacioneDto {
   @IsOptional()
   @Type(() => Number)
   costo_por_dia?: number;
+
+  @IsString()
+  @IsOptional()
+  articulos_ingreso?: string;
+
+  @IsString()
+  @IsOptional()
+  medicion_post_operatoria?: string;
 }

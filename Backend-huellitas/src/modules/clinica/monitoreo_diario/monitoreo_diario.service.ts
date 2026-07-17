@@ -23,6 +23,14 @@ export class MonitoreoDiarioService {
       freq_cardiaca: monitoreo.freqCardiaca ?? undefined,
       freq_respiratoria: monitoreo.freqRespiratoria ?? undefined,
       observaciones: monitoreo.observaciones,
+      vomito_diarrea_convulsion: monitoreo.vomitoDiarreaConvulsion ?? undefined,
+      presion: monitoreo.presion ?? undefined,
+      spo2: monitoreo.spo2 ?? undefined,
+      tllc: monitoreo.tllc ?? undefined,
+      mucosa: monitoreo.mucosa ?? undefined,
+      peso_kg: monitoreo.pesoKg ? Number(monitoreo.pesoKg) : undefined,
+      produccion_orina_ml: monitoreo.produccionOrinaMl ?? undefined,
+      glasgow: monitoreo.glasgow ?? undefined,
       veterinario: monitoreo.veterinario ? {
         id: monitoreo.veterinario.id,
         nombres: monitoreo.veterinario.nombres,
@@ -58,6 +66,14 @@ export class MonitoreoDiarioService {
       freqCardiaca: createDto.freq_cardiaca,
       freqRespiratoria: createDto.freq_respiratoria,
       observaciones: createDto.observaciones,
+      vomitoDiarreaConvulsion: createDto.vomito_diarrea_convulsion,
+      presion: createDto.presion,
+      spo2: createDto.spo2,
+      tllc: createDto.tllc,
+      mucosa: createDto.mucosa,
+      pesoKg: createDto.peso_kg,
+      produccionOrinaMl: createDto.produccion_orina_ml,
+      glasgow: createDto.glasgow,
       createdBy: creatorId,
       createdByUser: { id: creatorId } as any,
     });
@@ -108,6 +124,14 @@ export class MonitoreoDiarioService {
     if (updateDto.freq_cardiaca !== undefined) monitoreo.freqCardiaca = updateDto.freq_cardiaca;
     if (updateDto.freq_respiratoria !== undefined) monitoreo.freqRespiratoria = updateDto.freq_respiratoria;
     if (updateDto.observaciones !== undefined) monitoreo.observaciones = updateDto.observaciones;
+    if (updateDto.vomito_diarrea_convulsion !== undefined) monitoreo.vomitoDiarreaConvulsion = updateDto.vomito_diarrea_convulsion;
+    if (updateDto.presion !== undefined) monitoreo.presion = updateDto.presion;
+    if (updateDto.spo2 !== undefined) monitoreo.spo2 = updateDto.spo2;
+    if (updateDto.tllc !== undefined) monitoreo.tllc = updateDto.tllc;
+    if (updateDto.mucosa !== undefined) monitoreo.mucosa = updateDto.mucosa;
+    if (updateDto.peso_kg !== undefined) monitoreo.pesoKg = updateDto.peso_kg;
+    if (updateDto.produccion_orina_ml !== undefined) monitoreo.produccionOrinaMl = updateDto.produccion_orina_ml;
+    if (updateDto.glasgow !== undefined) monitoreo.glasgow = updateDto.glasgow;
     monitoreo.updatedBy = updaterId;
 
     const guardado = await this.monitoreoRepo.save(monitoreo);

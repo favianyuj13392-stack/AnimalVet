@@ -47,7 +47,7 @@ export default function HospitalizacionPage() {
   }, [hospitalizaciones]);
 
   // Fetch monitoreos de todos los internados activos
-  const { data: todosMonitoreos = [] } = useQuery({
+  const { data: todosMonitoreos = {} } = useQuery({
     queryKey: ["monitoreos-todos", activeHospitalizations.map(h => h.id).join(",")],
     queryFn: async () => {
       const results = await Promise.all(
@@ -206,7 +206,7 @@ export default function HospitalizacionPage() {
                   <div className="flex items-center gap-3">
                     <div className="relative">
                       <img
-                        src={h.mascota?.foto_url || `https://api.dicebear.com/7.x/adventurer/svg?seed=${h.mascota?.nombre || "Paciente"}`}
+                        src={(h.mascota as any)?.foto_url || `https://api.dicebear.com/7.x/adventurer/svg?seed=${h.mascota?.nombre || "Paciente"}`}
                         alt={h.mascota?.nombre}
                         className="h-12 w-12 border-2 border-background rounded-full bg-card shadow-sm group-hover:scale-105 transition-transform"
                       />
@@ -270,7 +270,7 @@ export default function HospitalizacionPage() {
                 <Button
                   variant="outline"
                   className="flex-1 rounded-xl text-xs gap-1.5"
-                  onClick={() => setHistorialMascota({ id: h.mascota?.id, nombre: h.mascota?.nombre ?? "Paciente" })}
+                  onClick={() => setHistorialMascota({ id: h.mascota?.id || "", nombre: h.mascota?.nombre ?? "Paciente" })}
                 >
                   <ClipboardList className="h-3.5 w-3.5" /> Historial
                 </Button>

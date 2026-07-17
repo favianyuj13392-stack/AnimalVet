@@ -1,5 +1,5 @@
 // src/modules/clinica/historial_clinico/dto/create-historial.dto.ts
-import { IsUUID, IsNumber, IsString, IsOptional, Min, MaxLength, IsNotEmpty, IsIn } from 'class-validator';
+import { IsUUID, IsNumber, IsString, IsOptional, Min, MaxLength, IsNotEmpty, IsIn, IsBoolean, IsArray } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateHistorialClinicoDto {
@@ -55,8 +55,68 @@ export class CreateHistorialClinicoDto {
   @IsOptional()
   triaje_completado?: boolean;
 
+  @IsString()
+  @IsOptional()
+  turno?: string;
+
+  @IsString()
+  @IsOptional()
+  mucosas?: string;
+
+  @IsString()
+  @IsOptional()
+  anamnesis?: string;
+
+  @IsString()
+  @IsOptional()
+  diagnostico_presuntivo?: string;
+
+  @IsString()
+  @IsOptional()
+  diagnostico_definitivo?: string;
+
+  // Exámenes Complementarios Checkboxes
+  @IsBoolean()
+  @IsOptional()
+  exam_ecografia?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  exam_rayos_x?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  exam_hemograma?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  exam_quimica_sanguinea?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  exam_otros?: boolean;
+
+  @IsString()
+  @IsOptional()
+  exam_resultados?: string;
+
+  @IsString()
+  @IsOptional()
+  estado?: string; // 'BORRADOR' | 'FINALIZADA'
+
+  @IsArray()
+  @IsOptional()
+  examenes_solicitados?: string[];
+
+  @IsArray()
+  @IsOptional()
+  patologias?: {
+    id_patologia_fk: string;
+    tipo: string; // 'PRESUNTIVO' | 'DEFINITIVO'
+  }[];
+
   // 👇 ¡LA ÚNICA LLAVE FORÁNEA NECESARIA Y ES OBLIGATORIA!
   @ApiProperty({ example: 'uuid-cita' })
   @IsUUID('all', { message: 'Debe enviar un ID de cita válido.' })
-  id_cita_fk: string; 
+  id_cita_fk: string;
 }

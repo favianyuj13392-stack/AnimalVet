@@ -52,4 +52,26 @@ export const historialClinicoService = {
     const { data } = await api.get('/plantillas-patologia');
     return data;
   },
+
+  // --- SEGUIMIENTOS ---
+  crearSeguimiento: async (payload: any): Promise<any> => {
+    const { data } = await api.post('/seguimientos-clinicos', payload);
+    return data;
+  },
+
+  // --- INFORMES ---
+  crearInforme: async (payload: any): Promise<any> => {
+    const { data } = await api.post('/informes-clinicos', payload);
+    return data;
+  },
+
+  descargarInformePdf: async (id: string): Promise<Blob> => {
+    const { data } = await api.get(`/informes-clinicos/${id}/pdf`, { responseType: 'blob' });
+    return data;
+  },
+
+  getByCita: async (idCita: string): Promise<any | null> => {
+    const { data } = await api.get(`/historial-clinico/cita/${idCita}`);
+    return data;
+  },
 };

@@ -49,8 +49,11 @@ export class RecetasResponseDto {
   @ApiProperty()
   id: string;
 
-  @ApiProperty()
-  id_historial_fk: string;
+  @ApiProperty({ required: false })
+  id_historial_fk?: string | null;
+
+  @ApiProperty({ required: false })
+  id_seguimiento_fk?: string | null;
 
   @ApiProperty()
   indicaciones_grales: string;

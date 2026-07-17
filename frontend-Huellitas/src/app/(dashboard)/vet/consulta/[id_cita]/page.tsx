@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
   Stethoscope,
   ArrowLeft,
@@ -29,6 +29,7 @@ import { historialClinicoService } from "@/domains/clinical/services/historial-c
 import { vaccinesCatalogService } from "@/domains/clinical/services/vaccines-catalog.service";
 import { productosService } from "@/domains/inventory/services/productos.service";
 import { lotesService } from "@/domains/billing/services/lotes.service";
+import { patologiasService } from "@/domains/clinical/services/patologias.service";
 
 // Components
 import { TriageForm } from "@/domains/clinical/components/triage-form";
@@ -60,12 +61,126 @@ export default function ConsultaActivaPage() {
   const [historialOpen, setHistorialOpen] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
 
+  // Nuevos Estados de Ficha Clínica
+  const [turno, setTurno] = useState("Mañana");
+  const [mucosas, setMucosas] = useState("");
+  const [anamnesis, setAnamnesis] = useState("");
+  const [presuntivas, setPresuntivas] = useState<any[]>([]);
+  const [definitivas, setDefinitivas] = useState<any[]>([]);
+  
+
+
+  // Artículos de Ingreso para Hospitalización
+  const [articulos, setArticulos] = useState<{ descripcion: string; cantidad: number; observacion?: string }[]>([]);
+  const [artDesc, setArtDesc] = useState("");
+  const [artCant, setArtCant] = useState("1");
+  const [artObs, setArtObs] = useState("");
+
+  const [examEcografia, setExamEcografia] = useState(false);
+  const [examRayosX, setExamRayosX] = useState(false);
+  const [examHemograma, setExamHemograma] = useState(false);
+  const [examQuimicaSanguinea, setExamQuimicaSanguinea] = useState(false);
+  const [examOtros, setExamOtros] = useState(false);
+  const [examResultados, setExamResultados] = useState("");
+
   // --- QUERIES ---
+  const searchParams = useSearchParams();
+  const citaQueryId = searchParams.get("cita");
+  const mascotaQueryId = searchParams.get("mascota");
+
+  // A. Redirección si se pasa ?cita=...
+  React.useEffect(() => {
+    if (id_cita === "nueva" && citaQueryId) {
+      router.replace(`/vet/consulta/${citaQueryId}`);
+    }
+  }, [id_cita, citaQueryId, router]);
+
+  // B. Creación de cita express automática si se pasa ?mascota=...
+  const [creatingCitaAuto, setCreatingCitaAuto] = useState(false);
+  React.useEffect(() => {
+    const initCitaAuto = async () => {
+      if (id_cita === "nueva" && !citaQueryId && mascotaQueryId && user && !creatingCitaAuto) {
+        setCreatingCitaAuto(true);
+        try {
+          const newCita = await citasService.createExpress(mascotaQueryId as string, 1);
+          router.replace(`/vet/consulta/${newCita.id}`);
+        } catch (err) {
+          console.error("Error al crear cita automática:", err);
+          toast.error("Error al iniciar la consulta médica");
+        }
+      }
+    };
+    initCitaAuto();
+  }, [id_cita, citaQueryId, mascotaQueryId, user, creatingCitaAuto, router]);
+
+  // C. Consulta de Mascota Directa (si no hay cita) para mostrar nombre/dueño mientras se redirige/procesa
+  const { data: directMascota, isLoading: loadingMascota } = useQuery({
+    queryKey: ["mascota-direct", mascotaQueryId],
+    queryFn: () => mascotasService.getOne(mascotaQueryId as string),
+    enabled: id_cita === "nueva" && !!mascotaQueryId,
+  });
+
   const { data: appointment, isLoading: loadingCita } = useQuery<Cita>({
     queryKey: ["cita", id_cita],
     queryFn: () => citasService.getOne(id_cita as string),
-    enabled: !!id_cita,
+    enabled: !!id_cita && id_cita !== "nueva",
   });
+
+  const { data: existingHistorial, isLoading: loadingHistorial } = useQuery({
+    queryKey: ["historial-cita", id_cita],
+    queryFn: () => historialClinicoService.getByCita(id_cita as string),
+    enabled: !!id_cita && id_cita !== "nueva",
+  });
+
+  React.useEffect(() => {
+    if (existingHistorial) {
+      if (existingHistorial.peso_actual_kg) setPeso(existingHistorial.peso_actual_kg.toString());
+      if (existingHistorial.temperatura_c) setTemperatura(existingHistorial.temperatura_c.toString());
+      if (existingHistorial.frecuencia_cardiaca) setFc(existingHistorial.frecuencia_cardiaca.toString());
+      if (existingHistorial.frecuencia_respiratoria) setFr(existingHistorial.frecuencia_respiratoria.toString());
+      if (existingHistorial.diagnostico) setDiagnostico(existingHistorial.diagnostico);
+      if (existingHistorial.sintomas) setSintomas(existingHistorial.sintomas);
+      if (existingHistorial.notas_internas) setIndicaciones(existingHistorial.notas_internas);
+      if (existingHistorial.turno) setTurno(existingHistorial.turno);
+      if (existingHistorial.mucosas) setMucosas(existingHistorial.mucosas);
+      if (existingHistorial.anamnesis) setAnamnesis(existingHistorial.anamnesis);
+      if (existingHistorial.exam_ecografia !== undefined) setExamEcografia(existingHistorial.exam_ecografia);
+      if (existingHistorial.exam_rayos_x !== undefined) setExamRayosX(existingHistorial.exam_rayos_x);
+      if (existingHistorial.exam_hemograma !== undefined) setExamHemograma(existingHistorial.exam_hemograma);
+      if (existingHistorial.exam_quimica_sanguinea !== undefined) setExamQuimicaSanguinea(existingHistorial.exam_quimica_sanguinea);
+      if (existingHistorial.exam_otros !== undefined) setExamOtros(existingHistorial.exam_otros);
+      if (existingHistorial.exam_resultados) setExamResultados(existingHistorial.exam_resultados);
+
+      // Receta
+      if (existingHistorial.recetas && existingHistorial.recetas.length > 0) {
+        const firstReceta = existingHistorial.recetas[0];
+        const mappedDetalles = (firstReceta.detalles || []).map((d: any) => ({
+          id: d.id,
+          id_producto_fk: d.producto?.id || null,
+          medicamento_texto: d.medicamento_texto || d.producto?.nombre || "",
+          dosis: d.dosis,
+          frecuencia: d.frecuencia,
+          duracion_dias: d.duracion_dias,
+          cantidad: d.cantidad,
+          observaciones: d.observacion || "",
+          nombre: d.producto?.nombre || d.medicamento_texto || "",
+        }));
+        setReceta(mappedDetalles);
+      }
+
+      // Patologías (presuntivas y definitivas)
+      if (existingHistorial.patologias) {
+        const pres = existingHistorial.patologias
+          .filter((p: any) => p.tipo === "PRESUNTIVA")
+          .map((p: any) => p.patologia);
+        const def = existingHistorial.patologias
+          .filter((p: any) => p.tipo === "DEFINITIVA")
+          .map((p: any) => p.patologia);
+        setPresuntivas(pres);
+        setDefinitivas(def);
+      }
+    }
+  }, [existingHistorial]);
 
   const { data: dbProducts } = useQuery({
     queryKey: ["productos-catalogo"],
@@ -75,6 +190,11 @@ export default function ConsultaActivaPage() {
   const { data: dbPathologies = [] } = useQuery({
     queryKey: ["plantillas-patologia"],
     queryFn: () => historialClinicoService.getPlantillasPatologia().catch(() => []),
+  });
+
+  const { data: dbPatologiasMaster = [] } = useQuery({
+    queryKey: ["patologias-catalogo"],
+    queryFn: () => patologiasService.getAll().catch(() => []),
   });
 
   const { data: dbVaccines = [] } = useQuery({
@@ -139,16 +259,16 @@ export default function ConsultaActivaPage() {
       contenidoDosisPorEnvase: p.contenidoDosisPorEnvase,
       volumenRestanteOpen: p.volumenRestanteOpen,
     }));
-  if (loadingCita) {
+  if (id_cita === "nueva" || loadingCita || loadingHistorial) {
     return (
       <div className="flex flex-col items-center justify-center py-40 gap-4 text-muted-foreground animate-pulse">
         <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        <p className="text-sm font-medium">Cargando detalles del paciente...</p>
+        <p className="text-sm font-medium">Iniciando consulta médica y cargando expediente...</p>
       </div>
     );
   }
 
-  const m = appointment?.mascota;
+  const m = id_cita === "nueva" ? directMascota : appointment?.mascota;
   const duenoName = m?.dueno ? `${m.dueno.nombres} ${m.dueno.apellidos}` : "Cliente General";
   const razaName = m?.raza?.nombre || "Mestizo";
   const especieName = m?.raza?.especie?.nombre || "Canino";
@@ -194,16 +314,19 @@ export default function ConsultaActivaPage() {
     setReceta(receta.filter(r => r.id !== id));
   };
 
- const handleFinalizarConsulta = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const handleSave = async (estado: 'BORRADOR' | 'FINALIZADA') => {
     // 1. VALIDACIONES PREVIAS (UI)
-    if (!diagnostico || !sintomas || !peso) {
-      return toast.error("Por favor completa los campos clínicos obligatorios (Peso, Síntomas, Diagnóstico)");
-    }
-
-    if (receta.length === 0) {
-      return toast.error("La receta médica es obligatoria. Por favor, añade al menos un medicamento.");
+    if (estado === 'FINALIZADA') {
+      if (!diagnostico || !sintomas || !peso) {
+        return toast.error("Por favor completa los campos clínicos obligatorios (Peso, Síntomas, Diagnóstico) para finalizar.");
+      }
+      if (receta.length === 0) {
+        return toast.error("La receta médica es obligatoria para finalizar. Por favor, añade al menos un medicamento.");
+      }
+    } else {
+      if (!peso) {
+        return toast.error("Por favor completa al menos el Peso para guardar como borrador.");
+      }
     }
 
     try {
@@ -212,9 +335,9 @@ export default function ConsultaActivaPage() {
         // A. Cabecera: Datos del Historial
         historial: {
           motivo_consulta: cita.motivo,
-          sintomas: sintomas,
+          sintomas: sintomas || "Triaje inicial / Borrador",
           peso_actual_kg: parseFloat(peso),
-          diagnostico: diagnostico,
+          diagnostico: diagnostico || "Evaluación en curso",
           notas_internas: indicaciones || "",
           temperatura_c: temperatura ? parseFloat(temperatura) : undefined,
           frecuencia_cardiaca: fc ? parseInt(fc, 10) : undefined,
@@ -222,10 +345,26 @@ export default function ConsultaActivaPage() {
           tipo_atencion: "Consulta",
           triaje_completado: true,
           id_cita_fk: id_cita as string,
+          estado: estado,
+
+          turno,
+          mucosas,
+          anamnesis,
+          exam_ecografia: examEcografia,
+          exam_rayos_x: examRayosX,
+          exam_hemograma: examHemograma,
+          exam_quimica_sanguinea: examQuimicaSanguinea,
+          exam_otros: examOtros,
+          exam_resultados: examResultados,
+
+          // Diagnósticos estructurados
+          patologias: [
+            ...presuntivas.map(p => ({ id_patologia_fk: p.id, tipo: 'PRESUNTIVO' })),
+            ...definitivas.map(d => ({ id_patologia_fk: d.id, tipo: 'DEFINITIVO' })),
+          ],
         },
         
-        // B. Arreglo de Medicamentos (Receta)
-      // B. Arreglo de Medicamentos (Receta) - ¡Volvemos al formato Array!
+        // B. Arreglo de Medicamentos (Receta) - ¡Volvemos al formato Array!
         receta: receta.map(r => ({
           id_producto: r.id_producto || null,
           medicamento_texto: r.id_producto ? null : r.medicamento_texto,
@@ -255,11 +394,15 @@ export default function ConsultaActivaPage() {
         // D. Objeto Hospitalización (Solo si activó el switch)
         hospitalizacion: ordenarHospitalizar ? {
           fecha_ingreso: new Date().toISOString(),
-          motivo_ingreso: diagnostico,
-          estado_actual: "Observacion",
+          motivo_ingreso: diagnostico || "Ingreso por observación",
+          estado_actual: "ACTIVA", // 'ACTIVA' | 'ALTA' | 'FALLECIDO' | 'REFERIDO'
           costo_por_dia: parseFloat(costoPorDia) || 150.00,
+          articulos: articulos.map(art => ({
+            descripcion: art.descripcion,
+            cantidad: Number(art.cantidad) || 1,
+            observacion: art.observacion || "",
+          })),
         } : undefined,
-
 
         archivos: (() => {
           // Solo archivos que subieron exitosamente Y tienen URL real de Cloudinary
@@ -271,6 +414,7 @@ export default function ConsultaActivaPage() {
             url_archivo: file.url,
             nombre_archivo: file.name,
             tipo_archivo: file.type || "application/octet-stream",
+            estado_archivo: file.estado_archivo || "Finalizado",
             tipo_estudio: file.name.toLowerCase().includes("rx") || file.name.toLowerCase().includes("radiografia")
               ? "Radiografia"
               : file.name.toLowerCase().includes("eco")
@@ -290,20 +434,31 @@ export default function ConsultaActivaPage() {
       await historialClinicoService.finalizarConsultaTransaccional(payloadTransaccional);
 
       // Si no saltó al 'catch', significa que TODO se guardó perfectamente
-      toast.success("Consulta Finalizada con éxito", {
-        description: "El expediente, receta y estado de la cita se guardaron correctamente."
+      toast.success(estado === 'FINALIZADA' ? "Consulta Finalizada con éxito" : "Borrador guardado con éxito", {
+        description: estado === 'FINALIZADA'
+          ? "El expediente, receta y estado de la cita se guardaron correctamente."
+          : "Los cambios se guardaron como borrador correctamente."
       });
       
-      setShowSuccessDialog(true);
+      if (estado === 'FINALIZADA') {
+        setShowSuccessDialog(true);
+      } else {
+        router.push("/vet/agenda");
+      }
 
     } catch (err: any) {
       console.error("Error detallado:", err);
       const mensajeError = err.response?.data?.message || err.response?.data?.error || "Ocurrió un error inesperado al finalizar la consulta.";
       
-      toast.error("Error al finalizar la consulta", {
+      toast.error("Error al guardar la consulta", {
         description: Array.isArray(mensajeError) ? mensajeError[0] : mensajeError
       });
     }
+  };
+
+  const handleFinalizarConsulta = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await handleSave('FINALIZADA');
   };
 
   const handlePrintPrescription = () => {
@@ -495,6 +650,32 @@ export default function ConsultaActivaPage() {
             indicaciones={indicaciones}
             setIndicaciones={setIndicaciones}
             disabled={isAdmin}
+
+            turno={turno}
+            setTurno={setTurno}
+            mucosas={mucosas}
+            setMucosas={setMucosas}
+            anamnesis={anamnesis}
+            setAnamnesis={setAnamnesis}
+            presuntivas={presuntivas}
+            setPresuntivas={setPresuntivas}
+            definitivas={definitivas}
+            setDefinitivas={setDefinitivas}
+            dbPatologiasMaster={dbPatologiasMaster}
+
+
+            examEcografia={examEcografia}
+            setExamEcografia={setExamEcografia}
+            examRayosX={examRayosX}
+            setExamRayosX={setExamRayosX}
+            examHemograma={examHemograma}
+            setExamHemograma={setExamHemograma}
+            examQuimicaSanguinea={examQuimicaSanguinea}
+            setExamQuimicaSanguinea={setExamQuimicaSanguinea}
+            examOtros={examOtros}
+            setExamOtros={setExamOtros}
+            examResultados={examResultados}
+            setExamResultados={setExamResultados}
           />
 
           <Card className="rounded-3xl border-border/50 shadow-sm bg-card/60 backdrop-blur-sm">
@@ -615,15 +796,110 @@ export default function ConsultaActivaPage() {
                     />
                   </div>
                 )}
+
+                {ordenarHospitalizar && (
+                  <div className="mt-4 p-3 bg-muted/20 border border-dashed rounded-2xl space-y-3">
+                    <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Artículos de Ingreso (Inventario del Propietario)</Label>
+                    
+                    <div className="flex flex-col gap-2">
+                      <div className="grid grid-cols-3 gap-2">
+                        <input
+                          type="text"
+                          placeholder="Descripción (ej. Cobija, Plato)"
+                          value={artDesc}
+                          onChange={(e) => setArtDesc(e.target.value)}
+                          disabled={isAdmin}
+                          className="col-span-2 h-9 rounded-lg border px-2.5 text-xs bg-card"
+                        />
+                        <input
+                          type="number"
+                          placeholder="Cant"
+                          min="1"
+                          value={artCant}
+                          onChange={(e) => setArtCant(e.target.value)}
+                          disabled={isAdmin}
+                          className="h-9 rounded-lg border px-2 text-xs bg-card"
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="Observación (ej. Color azul, roto)"
+                          value={artObs}
+                          onChange={(e) => setArtObs(e.target.value)}
+                          disabled={isAdmin}
+                          className="flex-1 h-9 rounded-lg border px-2.5 text-xs bg-card"
+                        />
+                        <Button
+                          type="button"
+                          onClick={() => {
+                            if (!artDesc.trim()) return;
+                            setArticulos([...articulos, {
+                              descripcion: artDesc.trim(),
+                              cantidad: parseInt(artCant, 10) || 1,
+                              observacion: artObs.trim() || undefined
+                            }]);
+                            setArtDesc("");
+                            setArtCant("1");
+                            setArtObs("");
+                          }}
+                          disabled={!artDesc.trim() || isAdmin}
+                          className="h-9 rounded-lg px-3 bg-primary text-primary-foreground text-xs"
+                        >
+                          Agregar
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1 mt-2">
+                      {articulos.map((art, i) => (
+                        <div key={i} className="flex items-center justify-between p-2 bg-card border rounded-lg text-xs">
+                          <div>
+                            <span className="font-semibold">{art.descripcion}</span>
+                            <span className="text-muted-foreground mx-1">x{art.cantidad}</span>
+                            {art.observacion && <span className="text-muted-foreground italic text-[10px]">({art.observacion})</span>}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setArticulos(articulos.filter((_, idx) => idx !== i))}
+                            disabled={isAdmin}
+                            className="text-destructive hover:underline"
+                          >
+                            Eliminar
+                          </button>
+                        </div>
+                      ))}
+                      {articulos.length === 0 && (
+                        <p className="text-[10px] text-muted-foreground text-center py-1">Ningún artículo registrado.</p>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
             </CardContent>
           </Card>
 
-          {/* FINALIZAR */}
-          <Button type="submit" disabled={isAdmin} className="w-full h-14 rounded-2xl text-base font-bold shadow-lg shadow-primary/20 hover:-translate-y-0.5 transition-transform disabled:opacity-50">
-            <Save className="h-5 w-5 mr-2" /> {isAdmin ? "Consulta de Solo Lectura" : "Guardar y Cerrar Consulta"}
-          </Button>
+          {/* ACCIONES */}
+          <div className="flex gap-4 w-full">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={isAdmin}
+              onClick={() => handleSave('BORRADOR')}
+              className="w-1/2 h-14 rounded-2xl text-base font-bold border-2 hover:bg-muted/10 disabled:opacity-50"
+            >
+              <Save className="h-5 w-5 mr-2" /> Guardar Borrador
+            </Button>
+            <Button
+              type="button"
+              disabled={isAdmin}
+              onClick={() => handleSave('FINALIZADA')}
+              className="w-1/2 h-14 rounded-2xl text-base font-bold shadow-lg shadow-primary/20 hover:-translate-y-0.5 transition-transform disabled:opacity-50"
+            >
+              <CheckCircle className="h-5 w-5 mr-2" /> Finalizar Consulta
+            </Button>
+          </div>
         </div>
       </form>
 

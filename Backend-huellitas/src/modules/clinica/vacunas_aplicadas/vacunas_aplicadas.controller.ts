@@ -38,6 +38,15 @@ export class VacunasAplicadasController {
     return this.vacunasAplicadasService.findByHistorial(idHistorial);
   }
 
+  @Get('mascota/:idMascota')
+  @Roles('Veterinario', 'Administrador', 'Cliente')
+  @ApiOperation({ summary: 'Listar vacunas aplicadas de una mascota' })
+  @ApiParam({ name: 'idMascota', description: 'UUID de la mascota' })
+  @ApiResponse({ status: 200, description: 'Lista de vacunas aplicadas.', type: [VacunasAplicadasResponseDto] })
+  findByMascota(@Param('idMascota', ParseUUIDPipe) idMascota: string): Promise<VacunasAplicadasResponseDto[]> {
+    return this.vacunasAplicadasService.findByMascota(idMascota);
+  }
+
   @Get('alertas')
   @Roles('Veterinario', 'Administrador', 'Cliente')
   @ApiOperation({ summary: 'Obtener alertas de vacunas próximas o vencidas' })

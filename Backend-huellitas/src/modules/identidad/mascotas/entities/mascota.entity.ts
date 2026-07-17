@@ -14,6 +14,9 @@ export class Mascota extends BaseEntity {
   @Column({ type: 'char', length: 1 })
   sexo: string;
 
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  color: string | null;
+
   @Column({ type: 'boolean', default: false })
   esterilizado: boolean;
 

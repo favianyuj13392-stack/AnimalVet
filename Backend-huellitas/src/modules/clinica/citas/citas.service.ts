@@ -266,9 +266,9 @@ async create(createCitaDto: CreateCitaDto, usuarioId: string): Promise<CitaRespo
     
     // REGLA 3: Transiciones desde "En_Curso"
     else if (estadoActual === 'En_Curso') {
-      if (nuevoEstado !== 'Completada') {
+      if (nuevoEstado !== 'Completada' && nuevoEstado !== 'Cancelada') {
         throw new BadRequestException(
-          `Transición inválida: Una vez que el paciente está [En_Curso], el único estado final posible es [Completada].`
+          `Transición inválida: Una vez que el paciente está [En_Curso], los únicos estados finales posibles son [Completada] o [Cancelada].`
         );
       }
     }
@@ -479,7 +479,7 @@ async create(createCitaDto: CreateCitaDto, usuarioId: string): Promise<CitaRespo
       .leftJoinAndSelect('h.vacunasAplicadas', 'vacunas')
       .leftJoinAndSelect('vacunas.vacuna', 'vacuna')
       .leftJoinAndSelect('vacuna.producto', 'vacunaProducto')
-      .where('h.estado = :estado', { estado: 'Cerrado' });
+      .where('h.estado IN (:...estados)', { estados: ['Cerrado', 'FINALIZADA'] });
 
     if (mascotaId) {
       qb.andWhere('exp.id_mascota_fk = :mascotaId', { mascotaId });

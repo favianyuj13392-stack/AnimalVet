@@ -13,6 +13,7 @@ import { vacunasAplicadasService } from "@/domains/clinical/services/vacunas-apl
 // Componentes UI
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/shared/components/ui/card";
 import { Label } from "@/shared/components/ui/label";
+import { Input } from "@/shared/components/ui/input";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
@@ -36,11 +37,19 @@ import { Dialog , DialogContent,DialogDescription,DialogFooter,DialogHeader,Dial
 const safeDateString = (dateVal: any): string => {
   if (!dateVal) return "—";
   try {
+    if (typeof dateVal === 'string' && dateVal.length === 10 && dateVal.includes('-')) {
+      const [year, month, day] = dateVal.split('-').map(Number);
+      const d = new Date(year, month - 1, day);
+      return d.toLocaleDateString("es-ES", { day: '2-digit', month: 'short', year: 'numeric' });
+    }
     const d = new Date(dateVal);
     if (isNaN(d.getTime())) return "—";
-    return d.toLocaleDateString("es-ES", {
-      year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit",
-    });
+    const hasTime = typeof dateVal === 'string' ? dateVal.includes('T') || dateVal.includes(':') : true;
+    if (hasTime) {
+      return d.toLocaleDateString("es-ES", { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    } else {
+      return new Date(d.getTime() + d.getTimezoneOffset() * 60000).toLocaleDateString("es-ES", { day: '2-digit', month: 'short', year: 'numeric' });
+    }
   } catch (e) {
     return "—";
   }
@@ -54,7 +63,21 @@ export default function HospitalizacionDashboard({ params }: { params: Promise<{
 
   // 2. Estados para los Modales
   const [modalLogOpen, setModalLogOpen] = useState(false);
-  const [newLog, setNewLog] = useState({ temp: "", fc: "", fr: "", turno: "Mañana", observaciones: "" });
+  const [newLog, setNewLog] = useState({
+    temp: "",
+    fc: "",
+    fr: "",
+    turno: "Mañana",
+    observaciones: "",
+    vomito_diarrea_convulsion: "",
+    presion: "",
+    spo2: "",
+    tllc: "",
+    mucosa: "",
+    peso_kg: "",
+    produccion_orina_ml: "",
+    glasgow: "",
+  });
   
   const [modalInsumoOpen, setModalInsumoOpen] = useState(false);
 
@@ -98,6 +121,122 @@ export default function HospitalizacionDashboard({ params }: { params: Promise<{
 
   const isAlta = hospitalizacion?.estado_actual === "Alta";
 
+  const [articulosIngreso, setArticulosIngreso] = useState("");
+  const [medicionPostOperatoria, setMedicionPostOperatoria] = useState("");
+  const [isEditingResumen, setIsEditingResumen] = useState(false);
+
+  React.useEffect(() => {
+    if (hospitalizacion) {
+      setArticulosIngreso(hospitalizacion.articulos_ingreso || "");
+      setMedicionPostOperatoria(hospitalizacion.medicion_post_operatoria || "");
+    }
+  }, [hospitalizacion]);
+
+  const handleSaveResumenCambios = async () => {
+    try {
+      await hospitalizacionesService.update(id, {
+        articulos_ingreso: articulosIngreso,
+        medicion_post_operatoria: medicionPostOperatoria,
+      });
+      toast.success("Datos del resumen actualizados correctamente.");
+      setIsEditingResumen(false);
+      refetch();
+    } catch (err) {
+      console.error(err);
+      toast.error("Error al guardar los cambios.");
+    }
+  };
+
+  const [nuevoTratamiento, setNuevoTratamiento] = useState({
+    medicamento: "",
+    dosis: "",
+    via: "",
+    ml: "",
+    hora: "",
+    fluido: "",
+    fluido_dosis: "",
+    ml_hr: "",
+    tiempo_inicio_fin: "",
+  });
+
+  const [nuevaAlimentacion, setNuevaAlimentacion] = useState({
+    dia: "",
+    hora: "",
+    tipo: "VO",
+    cantidad: "",
+  });
+
+  const handleAddTratamiento = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!nuevoTratamiento.medicamento && !nuevoTratamiento.fluido) {
+      toast.error("Por favor completa al menos el medicamento o el fluido del tratamiento.");
+      return;
+    }
+    try {
+      await hospitalizacionesService.addTratamiento(id, nuevoTratamiento);
+      toast.success("Tratamiento guardado exitosamente.");
+      setNuevoTratamiento({
+        medicamento: "",
+        dosis: "",
+        via: "",
+        ml: "",
+        hora: "",
+        fluido: "",
+        fluido_dosis: "",
+        ml_hr: "",
+        tiempo_inicio_fin: "",
+      });
+      refetch();
+    } catch (err) {
+      console.error(err);
+      toast.error("Error al registrar el tratamiento.");
+    }
+  };
+
+  const handleRemoveTratamiento = async (itemId: string) => {
+    try {
+      await hospitalizacionesService.removeTratamiento(itemId);
+      toast.success("Tratamiento eliminado.");
+      refetch();
+    } catch (err) {
+      console.error(err);
+      toast.error("Error al eliminar el tratamiento.");
+    }
+  };
+
+  const handleAddAlimentacion = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!nuevaAlimentacion.dia || !nuevaAlimentacion.hora || !nuevaAlimentacion.cantidad) {
+      toast.error("Por favor completa todos los campos de alimentación.");
+      return;
+    }
+    try {
+      await hospitalizacionesService.addAlimentacion(id, nuevaAlimentacion);
+      toast.success("Registro de alimentación guardado.");
+      setNuevaAlimentacion({
+        dia: "",
+        hora: "",
+        tipo: "VO",
+        cantidad: "",
+      });
+      refetch();
+    } catch (err) {
+      console.error(err);
+      toast.error("Error al guardar registro de alimentación.");
+    }
+  };
+
+  const handleRemoveAlimentacion = async (itemId: string) => {
+    try {
+      await hospitalizacionesService.removeAlimentacion(itemId);
+      toast.success("Registro de alimentación eliminado.");
+      refetch();
+    } catch (err) {
+      console.error(err);
+      toast.error("Error al eliminar el registro.");
+    }
+  };
+
   // 4. Funciones Controladoras (Handlers)
   const handleDarAlta = () => {
     setAltaForm({ condicion_egreso: "", diagnostico_egreso: "", instrucciones_alta: "" });
@@ -127,7 +266,7 @@ export default function HospitalizacionDashboard({ params }: { params: Promise<{
     }
   };
 
- const handleAddLog = async (e: React.FormEvent) => {
+  const handleAddLog = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newLog.temp || !newLog.fc || !newLog.fr || !newLog.turno || !newLog.observaciones) {
       toast.error("Por favor completa todos los signos vitales y datos del control");
@@ -142,11 +281,33 @@ export default function HospitalizacionDashboard({ params }: { params: Promise<{
         freq_cardiaca: parseInt(newLog.fc, 10),
         freq_respiratoria: parseInt(newLog.fr, 10),
         observaciones: newLog.observaciones,
+        vomito_diarrea_convulsion: newLog.vomito_diarrea_convulsion || undefined,
+        presion: newLog.presion || undefined,
+        spo2: newLog.spo2 ? parseInt(newLog.spo2, 10) : undefined,
+        tllc: newLog.tllc || undefined,
+        mucosa: newLog.mucosa || undefined,
+        peso_kg: newLog.peso_kg ? parseFloat(newLog.peso_kg) : undefined,
+        produccion_orina_ml: newLog.produccion_orina_ml ? parseInt(newLog.produccion_orina_ml, 10) : undefined,
+        glasgow: newLog.glasgow ? parseInt(newLog.glasgow, 10) : undefined,
       });
 
       toast.success("Signos vitales guardados exitosamente");
       setModalLogOpen(false);
-      setNewLog({ temp: "", fc: "", fr: "", turno: "Mañana", observaciones: "" });
+      setNewLog({
+        temp: "",
+        fc: "",
+        fr: "",
+        turno: "Mañana",
+        observaciones: "",
+        vomito_diarrea_convulsion: "",
+        presion: "",
+        spo2: "",
+        tllc: "",
+        mucosa: "",
+        peso_kg: "",
+        produccion_orina_ml: "",
+        glasgow: "",
+      });
       
       // 👇 CAMBIAMOS ESTO AQUÍ para refrescar tu nuevo endpoint
       refetchMonitoreos(); 
@@ -272,12 +433,14 @@ const handleAddArchivo = async (data: {
 
       {/* ÁREA DE PESTAÑAS */}
    <Tabs defaultValue="resumen" className="w-full">
-        <TabsList className="grid w-full grid-cols-5 lg:w-[750px] mb-6 rounded-2xl bg-muted/20 p-1">
-          <TabsTrigger value="resumen" className="rounded-xl font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm"><FileText className="w-4 h-4 mr-2 hidden sm:block"/> Resumen</TabsTrigger>
-          <TabsTrigger value="monitoreo" className="rounded-xl font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm"><Activity className="w-4 h-4 mr-2 hidden sm:block"/> Monitoreo</TabsTrigger>
-          <TabsTrigger value="insumos" className="rounded-xl font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm"><Pill className="w-4 h-4 mr-2 hidden sm:block"/> Insumos</TabsTrigger>
-          <TabsTrigger value="vacunas" className="rounded-xl font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm"><Syringe className="w-4 h-4 mr-2 hidden sm:block"/> Vacunas</TabsTrigger>
-          <TabsTrigger value="archivos" className="rounded-xl font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm"><Paperclip className="w-4 h-4 mr-2 hidden sm:block"/> Archivos</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-4 sm:grid-cols-7 lg:w-[980px] mb-6 rounded-2xl bg-muted/20 p-1 h-auto gap-1">
+          <TabsTrigger value="resumen" className="rounded-xl font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm text-xs py-2"><FileText className="w-3.5 h-3.5 mr-1.5 hidden md:block"/> Resumen</TabsTrigger>
+          <TabsTrigger value="monitoreo" className="rounded-xl font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm text-xs py-2"><Activity className="w-3.5 h-3.5 mr-1.5 hidden md:block"/> Monitoreo</TabsTrigger>
+          <TabsTrigger value="tratamientos" className="rounded-xl font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm text-xs py-2"><Syringe className="w-3.5 h-3.5 mr-1.5 hidden md:block"/> Tratamientos</TabsTrigger>
+          <TabsTrigger value="nutricion" className="rounded-xl font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm text-xs py-2"><HeartPulse className="w-3.5 h-3.5 mr-1.5 hidden md:block"/> Nutrición</TabsTrigger>
+          <TabsTrigger value="insumos" className="rounded-xl font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm text-xs py-2"><Pill className="w-3.5 h-3.5 mr-1.5 hidden md:block"/> Insumos</TabsTrigger>
+          <TabsTrigger value="vacunas" className="rounded-xl font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm text-xs py-2"><Syringe className="w-3.5 h-3.5 mr-1.5 hidden md:block"/> Vacunas</TabsTrigger>
+          <TabsTrigger value="archivos" className="rounded-xl font-bold data-[state=active]:bg-background data-[state=active]:shadow-sm text-xs py-2"><Paperclip className="w-3.5 h-3.5 mr-1.5 hidden md:block"/> Archivos</TabsTrigger>
         </TabsList>
 
         {/* --- TAB 1: RESUMEN MÉDICO --- */}
@@ -303,12 +466,76 @@ const handleAddArchivo = async (data: {
                   <strong className="text-foreground">{hospitalizacion.costo_por_dia} Bs.</strong>
                 </div>
               </div>
+              
               <div className="space-y-1 mt-4">
                 <span className="text-[10px] font-black uppercase text-muted-foreground tracking-wider block">Motivo de Ingreso</span>
                 <p className="text-sm text-foreground bg-muted/10 p-4 rounded-2xl border border-border/30 min-h-[56px] leading-relaxed font-bold">
                   {hospitalizacion.motivo_ingreso}
                 </p>
               </div>
+
+              {!isEditingResumen ? (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-black uppercase text-muted-foreground tracking-wider block">Artículos de Ingreso</span>
+                      <p className="text-sm text-foreground bg-muted/10 p-4 rounded-2xl border border-border/30 min-h-[56px] leading-relaxed font-medium">
+                        {hospitalizacion.articulos_ingreso || "Ninguno registrado."}
+                      </p>
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-black uppercase text-muted-foreground tracking-wider block">Medición/Notas Post Operatorias</span>
+                      <p className="text-sm text-foreground bg-muted/10 p-4 rounded-2xl border border-border/30 min-h-[56px] leading-relaxed font-medium">
+                        {hospitalizacion.medicion_post_operatoria || "Ninguna registrada."}
+                      </p>
+                    </div>
+                  </div>
+                  {!isAdmin && !isAlta && (
+                    <div className="flex justify-end pt-2">
+                      <Button onClick={() => setIsEditingResumen(true)} className="rounded-xl font-bold">
+                        Editar Información Clínica
+                      </Button>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="space-y-4 mt-4 border-t border-border/10 pt-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="articulos-ingreso">Artículos de Ingreso</Label>
+                      <Textarea
+                        id="articulos-ingreso"
+                        value={articulosIngreso}
+                        onChange={(e) => setArticulosIngreso(e.target.value)}
+                        placeholder="Ej. Correa azul, plato de comida, alimento marca X..."
+                        className="rounded-xl min-h-[80px]"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="medicion-post">Medición / Notas Post Operatorias</Label>
+                      <Textarea
+                        id="medicion-post"
+                        value={medicionPostOperatoria}
+                        onChange={(e) => setMedicionPostOperatoria(e.target.value)}
+                        placeholder="Ej. Monitoreo cardíaco cada 2 horas, control de heridas quirúrgicas..."
+                        className="rounded-xl min-h-[80px]"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <Button variant="ghost" onClick={() => {
+                      setArticulosIngreso(hospitalizacion.articulos_ingreso || "");
+                      setMedicionPostOperatoria(hospitalizacion.medicion_post_operatoria || "");
+                      setIsEditingResumen(false);
+                    }} className="rounded-xl">
+                      Cancelar
+                    </Button>
+                    <Button onClick={handleSaveResumenCambios} className="rounded-xl font-bold">
+                      Guardar Cambios
+                    </Button>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -338,9 +565,13 @@ const handleAddArchivo = async (data: {
                   <TableRow className="border-border/20">
                     <TableHead className="px-5 font-bold">Fecha / Hora</TableHead>
                     <TableHead className="font-bold">Turno</TableHead>
+                    <TableHead className="font-bold text-center">Peso</TableHead>
                     <TableHead className="font-bold text-center">T° (°C)</TableHead>
                     <TableHead className="font-bold text-center">F.C. (bpm)</TableHead>
                     <TableHead className="font-bold text-center">F.R. (rpm)</TableHead>
+                    <TableHead className="font-bold text-center">SpO2</TableHead>
+                    <TableHead className="font-bold text-center">Presión</TableHead>
+                    <TableHead className="font-bold text-center">Vóm/Diar/Conv</TableHead>
                     <TableHead className="font-bold">Médico de Guardia</TableHead>
                     <TableHead className="font-bold">Observaciones Clínicas</TableHead>
                   </TableRow>
@@ -349,7 +580,7 @@ const handleAddArchivo = async (data: {
                   {/* 👇 MAPEAMOS TU NUEVO ENDPOINT DIRECTAMENTE */}
                   {!monitoreos || monitoreos.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+                      <TableCell colSpan={11} className="text-center py-12 text-muted-foreground">
                         <Activity className="h-10 w-10 mx-auto opacity-20 mb-3 animate-pulse" />
                         <p className="text-sm font-medium">Sin registros de monitoreo para este paciente.</p>
                       </TableCell>
@@ -363,15 +594,339 @@ const handleAddArchivo = async (data: {
                           }) : "—"}
                         </TableCell>
                         <td className="py-3 px-4 font-semibold text-xs text-muted-foreground">{m.turno}</td>
+                        <td className="py-3 px-4 text-center font-mono text-xs">{m.peso_kg ? `${m.peso_kg} kg` : "—"}</td>
                         <td className="py-3 px-4 text-center font-mono font-bold text-primary">{m.temperatura_c}°C</td>
                         <td className="py-3 px-4 text-center font-mono text-destructive font-bold">{m.freq_cardiaca} bpm</td>
                         <td className="py-3 px-4 text-center font-mono font-semibold">{m.freq_respiratoria} rpm</td>
+                        <td className="py-3 px-4 text-center font-mono text-xs">{m.spo2 ? `${m.spo2}%` : "—"}</td>
+                        <td className="py-3 px-4 text-center font-mono text-xs">{m.presion || "—"}</td>
+                        <td className="py-3 px-4 text-center text-xs font-medium text-amber-600">{m.vomito_diarrea_convulsion || "—"}</td>
                         <td className="py-3 px-4 font-bold text-xs">
                           {m.veterinario ? `Dr. ${m.veterinario.apellidos}` : "No asignado"}
                         </td>
-                        <td className="py-3 px-4 text-xs text-muted-foreground max-w-[220px] truncate hover:whitespace-normal transition-all">
-                          {m.observaciones}
+                        <td className="py-3 px-4 text-xs text-muted-foreground max-w-[280px]">
+                          <div>{m.observaciones}</div>
+                          {(m.tllc || m.mucosa || m.produccion_orina_ml || m.glasgow) && (
+                            <div className="mt-1.5 text-[10px] text-muted-foreground/75 border-t border-border/10 pt-1 flex flex-wrap gap-x-2 gap-y-0.5">
+                              {m.tllc && <span><strong>TLLC:</strong> {m.tllc}</span>}
+                              {m.mucosa && <span><strong>Mucosa:</strong> {m.mucosa}</span>}
+                              {m.produccion_orina_ml && <span><strong>Orina:</strong> {m.produccion_orina_ml} ml</span>}
+                              {m.glasgow && <span><strong>Glasgow:</strong> {m.glasgow}/15</span>}
+                            </div>
+                          )}
                         </td>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* --- TAB: TRATAMIENTO CONTINUO --- */}
+        <TabsContent value="tratamientos" className="space-y-6">
+          {!isAdmin && !isAlta && (
+            <Card className="rounded-3xl border-border/40 overflow-hidden shadow-sm bg-card/25 backdrop-blur-md">
+              <CardHeader className="pb-3 border-b border-border/30 bg-muted/10 p-5">
+                <CardTitle className="text-lg font-extrabold">Cargar Nuevo Tratamiento Continuo</CardTitle>
+                <CardDescription>Medicamentos administrados por vía, dosis, fluidoterapia y velocidades</CardDescription>
+              </CardHeader>
+              <CardContent className="p-5">
+                <form onSubmit={handleAddTratamiento} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="space-y-1">
+                      <Label htmlFor="t-med">Medicamento</Label>
+                      <Input
+                        id="t-med"
+                        value={nuevoTratamiento.medicamento}
+                        onChange={(e) => setNuevoTratamiento({ ...nuevoTratamiento, medicamento: e.target.value })}
+                        placeholder="Ej. Penicilina"
+                        className="rounded-xl"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="t-dosis">Dosis</Label>
+                      <Input
+                        id="t-dosis"
+                        value={nuevoTratamiento.dosis}
+                        onChange={(e) => setNuevoTratamiento({ ...nuevoTratamiento, dosis: e.target.value })}
+                        placeholder="Ej. 1.5 ml / 200mg"
+                        className="rounded-xl"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="t-via">Vía</Label>
+                      <Input
+                        id="t-via"
+                        value={nuevoTratamiento.via}
+                        onChange={(e) => setNuevoTratamiento({ ...nuevoTratamiento, via: e.target.value })}
+                        placeholder="Ej. IV / IM / SC"
+                        className="rounded-xl"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="t-ml">Volumen (ML)</Label>
+                      <Input
+                        id="t-ml"
+                        type="number"
+                        step="0.01"
+                        value={nuevoTratamiento.ml}
+                        onChange={(e) => setNuevoTratamiento({ ...nuevoTratamiento, ml: e.target.value })}
+                        placeholder="Ej. 2.5"
+                        className="rounded-xl"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="space-y-1">
+                      <Label htmlFor="t-hora">Hora de Aplicación</Label>
+                      <Input
+                        id="t-hora"
+                        value={nuevoTratamiento.hora}
+                        onChange={(e) => setNuevoTratamiento({ ...nuevoTratamiento, hora: e.target.value })}
+                        placeholder="Ej. 08:00 / c/12h"
+                        className="rounded-xl"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="t-fluido">Fluido / Solución</Label>
+                      <Input
+                        id="t-fluido"
+                        value={nuevoTratamiento.fluido}
+                        onChange={(e) => setNuevoTratamiento({ ...nuevoTratamiento, fluido: e.target.value })}
+                        placeholder="Ej. Ringer Lactato"
+                        className="rounded-xl"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="t-fluido-dosis">Velocidad Solución</Label>
+                      <Input
+                        id="t-fluido-dosis"
+                        value={nuevoTratamiento.fluido_dosis}
+                        onChange={(e) => setNuevoTratamiento({ ...nuevoTratamiento, fluido_dosis: e.target.value })}
+                        placeholder="Ej. 10 gotas/min"
+                        className="rounded-xl"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="t-ml-hr">ml / hora</Label>
+                      <Input
+                        id="t-ml-hr"
+                        type="number"
+                        step="0.1"
+                        value={nuevoTratamiento.ml_hr}
+                        onChange={(e) => setNuevoTratamiento({ ...nuevoTratamiento, ml_hr: e.target.value })}
+                        placeholder="Ej. 40"
+                        className="rounded-xl"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <Label htmlFor="t-tiempo">Tiempo (Inicio / Fin)</Label>
+                      <Input
+                        id="t-tiempo"
+                        value={nuevoTratamiento.tiempo_inicio_fin}
+                        onChange={(e) => setNuevoTratamiento({ ...nuevoTratamiento, tiempo_inicio_fin: e.target.value })}
+                        placeholder="Ej. 08:00 - 12:00"
+                        className="rounded-xl"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end pt-2">
+                    <Button type="submit" className="rounded-xl font-bold bg-primary shadow-md hover:-translate-y-0.5 transition-transform">
+                      Cargar Tratamiento
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          )}
+
+          <Card className="rounded-3xl border-border/40 overflow-hidden shadow-sm bg-card/25 backdrop-blur-md">
+            <CardHeader className="pb-3 border-b border-border/30 bg-muted/10 p-5">
+              <CardTitle className="text-lg font-extrabold">Matriz de Tratamiento Continuo</CardTitle>
+              <CardDescription>Registro histórico de medicación y fluidos suministrados</CardDescription>
+            </CardHeader>
+            <CardContent className="p-0 overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-muted/5">
+                  <TableRow className="border-border/20">
+                    <TableHead className="px-5 font-bold">Medicamento</TableHead>
+                    <TableHead className="font-bold">Dosis</TableHead>
+                    <TableHead className="font-bold">Vía</TableHead>
+                    <TableHead className="font-bold text-center">ml</TableHead>
+                    <TableHead className="font-bold text-center">Hora</TableHead>
+                    <TableHead className="font-bold">Fluido</TableHead>
+                    <TableHead className="font-bold">Velocidad</TableHead>
+                    <TableHead className="font-bold text-center">ml/hr</TableHead>
+                    <TableHead className="font-bold">Tiempo</TableHead>
+                    <TableHead className="font-bold">Fecha</TableHead>
+                    {!isAdmin && !isAlta && <TableHead className="font-bold text-right px-5">Acciones</TableHead>}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {!hospitalizacion.tratamientos || hospitalizacion.tratamientos.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={isAdmin || isAlta ? 10 : 11} className="text-center py-10 text-muted-foreground">
+                        No hay tratamientos registrados para esta internación.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    hospitalizacion.tratamientos.map((t: any) => (
+                      <TableRow key={t.id} className="border-border/10 hover:bg-muted/5 transition-colors text-xs">
+                        <TableCell className="px-5 font-bold">{t.medicamento || "—"}</TableCell>
+                        <TableCell>{t.dosis || "—"}</TableCell>
+                        <TableCell className="font-semibold text-muted-foreground">{t.via || "—"}</TableCell>
+                        <TableCell className="text-center font-mono">{t.ml ? `${t.ml} ml` : "—"}</TableCell>
+                        <TableCell className="text-center font-semibold">{t.hora || "—"}</TableCell>
+                        <TableCell>{t.fluido || "—"}</TableCell>
+                        <TableCell>{t.fluidoDosis || "—"}</TableCell>
+                        <TableCell className="text-center font-mono">{t.mlHr ? `${t.mlHr} ml/h` : "—"}</TableCell>
+                        <TableCell>{t.tiempoInicioFin || "—"}</TableCell>
+                        <TableCell className="font-mono">
+                          {t.fecha ? new Date(t.fecha).toLocaleDateString("es-BO") : "—"}
+                        </TableCell>
+                        {!isAdmin && !isAlta && (
+                          <TableCell className="text-right px-5">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleRemoveTratamiento(t.id)}
+                              className="text-destructive hover:bg-destructive/10 rounded-lg h-7 w-7 p-0 flex items-center justify-center font-bold"
+                            >
+                              ✕
+                            </Button>
+                          </TableCell>
+                        )}
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* --- TAB: NUTRICIÓN Y ALIMENTACIÓN --- */}
+        <TabsContent value="nutricion" className="space-y-6">
+          {!isAdmin && !isAlta && (
+            <Card className="rounded-3xl border-border/40 overflow-hidden shadow-sm bg-card/25 backdrop-blur-md">
+              <CardHeader className="pb-3 border-b border-border/30 bg-muted/10 p-5">
+                <CardTitle className="text-lg font-extrabold">Registrar Alimentación</CardTitle>
+                <CardDescription>Control de ingesta nutricional del paciente</CardDescription>
+              </CardHeader>
+              <CardContent className="p-5">
+                <form onSubmit={handleAddAlimentacion} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="space-y-1">
+                      <Label htmlFor="n-dia">Día / Fecha</Label>
+                      <Input
+                        id="n-dia"
+                        value={nuevaAlimentacion.dia}
+                        onChange={(e) => setNuevaAlimentacion({ ...nuevaAlimentacion, dia: e.target.value })}
+                        placeholder="Ej. Día 1 / 15-Jul"
+                        className="rounded-xl"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="n-hora">Hora</Label>
+                      <Input
+                        id="n-hora"
+                        value={nuevaAlimentacion.hora}
+                        onChange={(e) => setNuevaAlimentacion({ ...nuevaAlimentacion, hora: e.target.value })}
+                        placeholder="Ej. 12:30"
+                        className="rounded-xl"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="n-tipo">Vía de Alimentación</Label>
+                      <Select
+                        value={nuevaAlimentacion.tipo}
+                        onValueChange={(val) => setNuevaAlimentacion({ ...nuevaAlimentacion, tipo: val })}
+                      >
+                        <SelectTrigger id="n-tipo" className="rounded-xl">
+                          <SelectValue placeholder="Seleccione vía" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="VO">Vía Oral (VO)</SelectItem>
+                          <SelectItem value="DI">Dieta Húmeda (DI)</SelectItem>
+                          <SelectItem value="CO">Coactada/Asistida (CO)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="n-cant">Cantidad</Label>
+                      <Input
+                        id="n-cant"
+                        value={nuevaAlimentacion.cantidad}
+                        onChange={(e) => setNuevaAlimentacion({ ...nuevaAlimentacion, cantidad: e.target.value })}
+                        placeholder="Ej. 100 gr / 50 ml"
+                        className="rounded-xl"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end pt-2">
+                    <Button type="submit" className="rounded-xl font-bold bg-primary shadow-md hover:-translate-y-0.5 transition-transform">
+                      Registrar Alimento
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          )}
+
+          <Card className="rounded-3xl border-border/40 overflow-hidden shadow-sm bg-card/25 backdrop-blur-md">
+            <CardHeader className="pb-3 border-b border-border/30 bg-muted/10 p-5">
+              <CardTitle className="text-lg font-extrabold">Matriz de Alimentación</CardTitle>
+              <CardDescription>Registro del control nutricional diario</CardDescription>
+            </CardHeader>
+            <CardContent className="p-0 overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-muted/5">
+                  <TableRow className="border-border/20">
+                    <TableHead className="px-5 font-bold">Día / Fecha</TableHead>
+                    <TableHead className="font-bold">Hora</TableHead>
+                    <TableHead className="font-bold">Vía</TableHead>
+                    <TableHead className="font-bold">Cantidad</TableHead>
+                    {!isAdmin && !isAlta && <TableHead className="font-bold text-right px-5">Acciones</TableHead>}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {!hospitalizacion.alimentacion || hospitalizacion.alimentacion.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={isAdmin || isAlta ? 4 : 5} className="text-center py-10 text-muted-foreground">
+                        No hay registros de alimentación para esta internación.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    hospitalizacion.alimentacion.map((a: any) => (
+                      <TableRow key={a.id} className="border-border/10 hover:bg-muted/5 transition-colors">
+                        <TableCell className="px-5 font-bold">{a.dia || "—"}</TableCell>
+                        <TableCell className="font-mono text-sm">{a.hora || "—"}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="font-bold">
+                            {a.tipo === "VO" ? "Oral (VO)" : a.tipo === "DI" ? "Dieta Húmeda (DI)" : "Coactada (CO)"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="font-semibold text-primary">{a.cantidad || "—"}</TableCell>
+                        {!isAdmin && !isAlta && (
+                          <TableCell className="text-right px-5">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleRemoveAlimentacion(a.id)}
+                              className="text-destructive hover:bg-destructive/10 rounded-lg h-7 w-7 p-0 flex items-center justify-center font-bold"
+                            >
+                              ✕
+                            </Button>
+                          </TableCell>
+                        )}
                       </TableRow>
                     ))
                   )}

@@ -8,6 +8,10 @@ import { VacunaAplicada } from '../../vacunas_aplicadas/entities/vacunas_aplicad
 // 👇 NUEVAS IMPORTACIONES
 import { Hospitalizacion } from '../../hospitalizaciones/entities/hospitalizacione.entity';
 import { ArchivoAdjunto } from '../../archivos_adjuntos/entities/archivos_adjunto.entity';
+import { HistorialPatologia } from './historial-patologia.entity';
+import { SeguimientoClinico } from '../../seguimientos_clinicos/entities/seguimiento-clinico.entity';
+import { InformeClinico } from '../../informes_clinicos/entities/informe-clinico.entity';
+import { ExamenSolicitado } from '../../examenes_solicitados/entities/examen-solicitado.entity';
 
 @Entity('historial_clinico')
 export class HistorialClinico extends BaseEntity {
@@ -47,20 +51,66 @@ export class HistorialClinico extends BaseEntity {
   @Column({ name: 'triaje_completado', type: 'boolean', default: false })
   triaje_completado: boolean;
 
+  @Column({ name: 'turno', type: 'varchar', length: 20, nullable: true })
+  turno: string | null;
+
+  @Column({ name: 'mucosas', type: 'varchar', length: 100, nullable: true })
+  mucosas: string | null;
+
+  @Column({ name: 'anamnesis', type: 'text', nullable: true })
+  anamnesis: string | null;
+
+  @Column({ name: 'diagnostico_presuntivo', type: 'text', nullable: true })
+  diagnostico_presuntivo: string | null;
+
+  @Column({ name: 'diagnostico_definitivo', type: 'text', nullable: true })
+  diagnostico_definitivo: string | null;
+
+  // Exámenes Complementarios Checkboxes
+  @Column({ name: 'exam_ecografia', type: 'boolean', default: false })
+  exam_ecografia: boolean;
+
+  @Column({ name: 'exam_rayos_x', type: 'boolean', default: false })
+  exam_rayos_x: boolean;
+
+  @Column({ name: 'exam_hemograma', type: 'boolean', default: false })
+  exam_hemograma: boolean;
+
+  @Column({ name: 'exam_quimica_sanguinea', type: 'boolean', default: false })
+  exam_quimica_sanguinea: boolean;
+
+  @Column({ name: 'exam_otros', type: 'boolean', default: false })
+  exam_otros: boolean;
+
+  @Column({ name: 'exam_resultados', type: 'text', nullable: true })
+  exam_resultados: string | null;
+
   @Column({ type: 'text' })
   diagnostico: string;
 
   @Column({ name: 'notas_internas', type: 'text', nullable: true })
   notas_internas: string | null;
 
-  @Column({ name: 'estado', type: 'varchar', length: 20, default: 'Abierto' })
-  estado: string;
+  @Column({ name: 'estado', type: 'varchar', length: 20, default: 'ABIERTA' })
+  estado: string; // 'ABIERTA' | 'FINALIZADA' | 'CANCELADA'
 
   @Column({ name: 'created_by', type: 'uuid', nullable: false })
   createdBy: string;
 
   @Column({ name: 'updated_by', type: 'uuid', nullable: true })
   updatedBy: string;
+
+  @OneToMany(() => SeguimientoClinico, (s) => s.historialClinico)
+  seguimientos: SeguimientoClinico[];
+
+  @OneToMany(() => InformeClinico, (i) => i.historialClinico)
+  informes: InformeClinico[];
+
+  @OneToMany(() => ExamenSolicitado, (e) => e.historialClinico)
+  examenesSolicitados: ExamenSolicitado[];
+
+  @OneToMany(() => HistorialPatologia, (p) => p.historialClinico, { cascade: true })
+  patologias: HistorialPatologia[];
 
   // 🔗 LLAVES FORÁNEAS
   @ManyToOne(() => ExpedienteClinico, (expediente) => expediente.historiales)

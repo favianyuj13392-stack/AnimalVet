@@ -32,6 +32,22 @@ export class CitasController {
     return this.citasService.create(createCitaDto, req.user.id);
   }
 
+  @Post('express')
+  @Roles('Administrador', 'Veterinario', 'Cajero', 'Cliente')
+  @ApiOperation({ summary: 'Crear una cita express/directa sin validaciones de horarios' })
+  crearCitaExpress(
+    @Body('id_mascota_fk', ParseUUIDPipe) id_mascota_fk: string,
+    @Body('id_servicio_fk') id_servicio_fk: number,
+    @Req() req: any,
+  ) {
+    return this.citasService.crearCitaExpressUrgencia(
+      id_mascota_fk,
+      req.user.id,
+      id_servicio_fk || 1,
+      req.user.id,
+    );
+  }
+
   @Get('reportes/anual')
   @Roles('Administrador', 'Veterinario', 'Cajero', 'Cliente')
   @ApiOperation({ summary: 'Obtener reporte anual de citas con absentismo y productividad' })

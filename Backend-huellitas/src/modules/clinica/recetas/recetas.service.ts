@@ -40,6 +40,7 @@ export class RecetasService {
     return {
       id: r.id,
       id_historial_fk: r.idHistorialFk,
+      id_seguimiento_fk: r.idSeguimientoFk,
       indicaciones_grales: r.indicacionesGrales,
       veterinario: r.veterinario ? {
         id: r.veterinario.id,

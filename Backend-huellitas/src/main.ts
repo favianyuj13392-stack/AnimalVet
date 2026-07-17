@@ -1,3 +1,4 @@
+process.env.TZ = 'America/La_Paz';
 import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe, ClassSerializerInterceptor } from '@nestjs/common';
@@ -20,7 +21,7 @@ async function bootstrap() {
     app.use(helmet());
     app.use(json({ limit: '5mb' }));
     app.use(urlencoded({ extended: true, limit: '5mb' }));
-    app.setGlobalPrefix('api/huellitas');
+    app.setGlobalPrefix('api/animalvet');
 
     if (config.swagger) {
         const config = new DocumentBuilder()

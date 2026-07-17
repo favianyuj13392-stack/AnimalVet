@@ -4,9 +4,14 @@ import { HistorialClinico } from '../../historial_clinico/entities/historial_cli
 import { Hospitalizacion } from '../../hospitalizaciones/entities/hospitalizacione.entity'; // 👈 NUEVO IMPORT
 import { CatalogoVacuna } from '../../../core/catalogo_vacunas/entities/catalogo_vacuna.entity';
 import { Usuario } from '../../../identidad/usuarios/entities/usuario.entity';
+import { Mascota } from '../../../identidad/mascotas/entities/mascota.entity';
 
 @Entity('vacunas_aplicadas')
 export class VacunaAplicada extends BaseEntity {
+  // 👇 NUEVA COLUMNA ZOOSANITARIO
+  @Column({ name: 'id_mascota_fk', type: 'uuid', nullable: true })
+  id_mascota_fk: string | null;
+
   // 👇 Cambiado a nullable: true
   @Column({ name: 'id_historial_fk', type: 'uuid', nullable: true })
   id_historial_fk: string | null;
@@ -40,6 +45,10 @@ export class VacunaAplicada extends BaseEntity {
   updatedBy: string | null;
 
   // 🔗 LLAVES FORÁNEAS
+  @ManyToOne(() => Mascota)
+  @JoinColumn({ name: 'id_mascota_fk' })
+  mascota: Mascota;
+
   @ManyToOne(() => HistorialClinico)
   @JoinColumn({ name: 'id_historial_fk' })
   historial: HistorialClinico;

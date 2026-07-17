@@ -24,6 +24,9 @@ export class Usuario extends BaseEntity {
   @Column({ type: 'varchar', length: 20, nullable: true })
   ci: string | null;
 
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  domicilio: string | null;
+
   @Column({ name: 'avatar_url', type: 'varchar', length: 500, nullable: true })
   avatar_url: string | null;
 

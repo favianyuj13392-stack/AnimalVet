@@ -2,13 +2,17 @@
 import { Entity, Column, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { BaseEntity } from '../../../../infraestructura/database/base.entity';
 import { HistorialClinico } from '../../historial_clinico/entities/historial_clinico.entity';
+import { SeguimientoClinico } from '../../seguimientos_clinicos/entities/seguimiento-clinico.entity';
 import { Usuario } from '../../../identidad/usuarios/entities/usuario.entity';
 import { DetallesReceta } from '../../detalles_receta/entities/detalles_receta.entity';
 
 @Entity('recetas')
 export class Receta extends BaseEntity {
-  @Column({ name: 'id_historial_fk', type: 'uuid' })
-  idHistorialFk: string;
+  @Column({ name: 'id_historial_fk', type: 'uuid', nullable: true })
+  idHistorialFk: string | null;
+
+  @Column({ name: 'id_seguimiento_fk', type: 'uuid', nullable: true })
+  idSeguimientoFk: string | null;
 
   @Column({ name: 'id_veterinario_fk', type: 'uuid' })
   idVeterinarioFk: string;
@@ -26,6 +30,10 @@ export class Receta extends BaseEntity {
   @ManyToOne(() => HistorialClinico)
   @JoinColumn({ name: 'id_historial_fk' })
   historial: HistorialClinico;
+
+  @ManyToOne(() => SeguimientoClinico, (s) => s.recetas, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'id_seguimiento_fk' })
+  seguimiento: SeguimientoClinico;
 
   @ManyToOne(() => Usuario)
   @JoinColumn({ name: 'id_veterinario_fk' })

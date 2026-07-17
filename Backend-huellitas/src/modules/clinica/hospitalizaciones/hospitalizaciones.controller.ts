@@ -82,4 +82,36 @@ export class HospitalizacionesController {
   remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.hospitalizacionesService.remove(id);
   }
+
+  @Post(':id/tratamientos')
+  @Roles('Administrador', 'Veterinario', 'Cajero', 'Cliente')
+  addTratamiento(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: any,
+    @Req() req: any
+  ) {
+    return this.hospitalizacionesService.addTratamiento(id, body, req.user.id);
+  }
+
+  @Delete('tratamientos/:itemId')
+  @Roles('Administrador', 'Veterinario', 'Cajero', 'Cliente')
+  removeTratamiento(@Param('itemId', ParseUUIDPipe) itemId: string) {
+    return this.hospitalizacionesService.removeTratamiento(itemId);
+  }
+
+  @Post(':id/alimentacion')
+  @Roles('Administrador', 'Veterinario', 'Cajero', 'Cliente')
+  addAlimentacion(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: any,
+    @Req() req: any
+  ) {
+    return this.hospitalizacionesService.addAlimentacion(id, body, req.user.id);
+  }
+
+  @Delete('alimentacion/:itemId')
+  @Roles('Administrador', 'Veterinario', 'Cajero', 'Cliente')
+  removeAlimentacion(@Param('itemId', ParseUUIDPipe) itemId: string) {
+    return this.hospitalizacionesService.removeAlimentacion(itemId);
+  }
 }

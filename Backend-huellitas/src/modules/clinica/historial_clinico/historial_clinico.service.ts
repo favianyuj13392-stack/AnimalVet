@@ -23,6 +23,9 @@ import { FinalizarConsultaDto } from './dto/finalizar-consulta.dto';
 import { ArchivoAdjunto } from '../archivos_adjuntos/entities/archivos_adjunto.entity';
 import { CatalogoVacuna } from '../../core/catalogo_vacunas/entities/catalogo_vacuna.entity';
 import { Producto } from '../../inventario/productos/entities/producto.entity';
+import { HistorialPatologia } from './entities/historial-patologia.entity';
+import { ExamenSolicitado, EstadoExamenSolicitado } from '../examenes_solicitados/entities/examen-solicitado.entity';
+import { HospitalizacionArticulo } from '../hospitalizaciones/entities/hospitalizacion-articulo.entity';
 import { LoteCaducidad } from '../../inventario/lotes_caducidad/entities/lotes_caducidad.entity';
 import { KardexInventario } from '../../inventario/kardex_inventario/entities/kardex_inventario.entity';
 import { EnvaseAbierto } from '../../inventario/productos/entities/envase_abierto.entity';
@@ -62,8 +65,8 @@ export class HistorialClinicoService {
     if (!cita) throw new NotFoundException('La cita vinculada no existe.');
     
     // Regla de negocio: No se puede escribir historial si la cita no ha empezado
-    if (cita.estado !== 'En_Curso') {
-      throw new ConflictException(`La mascota debe estar [En_Curso] para generar el historial.`);
+    if (cita.estado !== 'En_Curso' && cita.estado !== 'Completada') {
+      throw new ConflictException(`La mascota debe estar [En_Curso] o [Completada] para generar el historial.`);
     }
 
     // 2. OBTENEMOS EL EXPEDIENTE (Gracias a la automatización que hicimos)
@@ -144,8 +147,8 @@ export class HistorialClinicoService {
     });
     
     if (!cita) throw new NotFoundException('La cita vinculada no existe.');
-    if (cita.estado !== 'En_Curso') {
-      throw new ConflictException(`La mascota debe estar [En_Curso] para finalizar la consulta.`);
+    if (cita.estado !== 'En_Curso' && cita.estado !== 'Completada') {
+      throw new ConflictException(`La mascota debe estar [En_Curso] o [Completada] para finalizar la consulta.`);
     }
 
     const expediente = await this.expedienteService.findByMascota(cita.mascota.id);
@@ -157,26 +160,70 @@ export class HistorialClinicoService {
 
     try {
       // --- A. GUARDAR HISTORIAL ---
-      const nuevoHistorial = queryRunner.manager.create(HistorialClinico, {
-        ...dto.historial,
-        id_expediente_fk: expediente.id,
-        id_veterinario_fk: cita.id_veterinario_fk,
-        id_cita_fk: cita.id,
-        estado: 'Abierto', // Nace abierto para permitir vincular las demás entidades
-        peso_kg: dto.historial.peso_actual_kg,
-        temperatura_c: dto.historial.temperatura_c ?? 38.5,
-        frecuencia_cardiaca: dto.historial.frecuencia_cardiaca ?? 80,
-        frecuencia_respiratoria: dto.historial.frecuencia_respiratoria ?? 20,
-        triaje_completado: dto.historial.triaje_completado ?? true,
-        tipo_atencion: dto.historial.tipo_atencion ?? 'Consulta',
-        createdBy: usuarioId,
-        updatedBy: usuarioId,
+      const { patologias, examenes_solicitados, estado: dtoEstado, ...historialClean } = dto.historial;
+
+      const existente = await queryRunner.manager.findOne(HistorialClinico, {
+        where: { id_cita_fk: cita.id },
+        relations: ['recetas', 'recetas.detalles']
       });
-      const hcGuardado = await queryRunner.manager.save(HistorialClinico, nuevoHistorial);
+
+      let hcGuardado: HistorialClinico;
+
+      if (existente) {
+        if (existente.estado === 'FINALIZADA') {
+          throw new ConflictException('Esta consulta ya ha sido finalizada y no puede modificarse.');
+        }
+
+        // 1. Eliminar recetas viejas asociadas y sus detalles
+        if (existente.recetas && existente.recetas.length > 0) {
+          for (const r of existente.recetas) {
+            if (r.detalles && r.detalles.length > 0) {
+              await queryRunner.manager.delete(DetallesReceta, { idRecetaFk: r.id });
+            }
+            await queryRunner.manager.delete(Receta, { id: r.id });
+          }
+        }
+
+        // 2. Eliminar patologías viejas
+        await queryRunner.manager.delete(HistorialPatologia, { id_historial_fk: existente.id });
+
+        // 3. Eliminar exámenes solicitados viejos (que sigan en SOLICITADO)
+        await queryRunner.manager.delete(ExamenSolicitado, { idHistorialFk: existente.id, estado: EstadoExamenSolicitado.SOLICITADO });
+
+        // 4. Actualizar campos
+        queryRunner.manager.merge(HistorialClinico, existente, {
+          ...historialClean,
+          peso_kg: dto.historial.peso_actual_kg,
+          temperatura_c: dto.historial.temperatura_c ?? 38.5,
+          frecuencia_cardiaca: dto.historial.frecuencia_cardiaca ?? 80,
+          frecuencia_respiratoria: dto.historial.frecuencia_respiratoria ?? 20,
+          triaje_completado: dto.historial.triaje_completado ?? true,
+          tipo_atencion: dto.historial.tipo_atencion ?? 'Consulta',
+          estado: 'Abierto', // temporalmente Abierto dentro de la transaccion
+          updatedBy: usuarioId,
+        });
+
+        hcGuardado = await queryRunner.manager.save(HistorialClinico, existente);
+      } else {
+        const nuevoHistorial = queryRunner.manager.create(HistorialClinico, {
+          ...historialClean,
+          id_expediente_fk: expediente.id,
+          id_veterinario_fk: cita.id_veterinario_fk,
+          id_cita_fk: cita.id,
+          estado: 'Abierto', // temporalmente Abierto dentro de la transaccion
+          peso_kg: dto.historial.peso_actual_kg,
+          temperatura_c: dto.historial.temperatura_c ?? 38.5,
+          frecuencia_cardiaca: dto.historial.frecuencia_cardiaca ?? 80,
+          frecuencia_respiratoria: dto.historial.frecuencia_respiratoria ?? 20,
+          triaje_completado: dto.historial.triaje_completado ?? true,
+          tipo_atencion: dto.historial.tipo_atencion ?? 'Consulta',
+          createdBy: usuarioId,
+          updatedBy: usuarioId,
+        });
+        hcGuardado = await queryRunner.manager.save(HistorialClinico, nuevoHistorial);
+      }
 
       // --- B. GUARDAR RECETA (Y SUS DETALLES) ---
-     // --- B. GUARDAR RECETA (Y SUS DETALLES) ---
-   // --- B. GUARDAR RECETA ---
       const nuevaReceta = queryRunner.manager.create(Receta, {
         idHistorialFk: hcGuardado.id,
         idVeterinarioFk: cita.id_veterinario_fk,
@@ -208,42 +255,40 @@ export class HistorialClinicoService {
           isUUID = true;
           prodObj = producto;
 
-          // Descontar inventario de forma proactiva en la consulta clínica (Auto-FIFO si es multidosis)
-          if (producto.tipoProducto === 'Multidosis') {
-            // Parsear la dosis (ej: "2.5 ml" -> 2.5, "3 gotas" -> 3)
-            const matchDosis = item.dosis.match(/([0-9]+(?:\.[0-9]+)?)/);
-            const cantidadDosis = matchDosis ? parseFloat(matchDosis[1]) : 1;
-            await this.descontarProductoMultidosis(
-              queryRunner.manager,
-              producto.id,
-              cantidadDosis,
-              usuarioId,
-              `Aplicacion en consulta de ${producto.nombre}`,
-              hcGuardado.id
-            );
-          } else {
-            // Unitario
-            await this.descontarProductoClinico(
-              queryRunner.manager,
-              producto.id,
-              1,
-              usuarioId,
-              `Uso de insumo en consulta: ${producto.nombre}`,
-              hcGuardado.id
-            );
+          // Descontar inventario de forma proactiva en la consulta clínica si se FINALIZA (Auto-FIFO si es multidosis)
+          if (dtoEstado !== 'BORRADOR') {
+            if (producto.tipoProducto === 'Multidosis') {
+              const matchDosis = item.dosis.match(/([0-9]+(?:\.[0-9]+)?)/);
+              const cantidadDosis = matchDosis ? parseFloat(matchDosis[1]) : 1;
+              await this.descontarProductoMultidosis(
+                queryRunner.manager,
+                producto.id,
+                cantidadDosis,
+                usuarioId,
+                `Aplicacion en consulta de ${producto.nombre}`,
+                hcGuardado.id
+              );
+            } else {
+              await this.descontarProductoClinico(
+                queryRunner.manager,
+                producto.id,
+                1,
+                usuarioId,
+                `Uso de insumo en consulta: ${producto.nombre}`,
+                hcGuardado.id
+              );
+            }
           }
         }
         item.id_producto = idProducto;
         item.medicamento_texto = medicamentoTexto;
         
         const detalle = queryRunner.manager.create(DetallesReceta, {
-          // Usamos exactamente los nombres en camelCase de tu entidad
           idRecetaFk: recetaGuardada.id, 
-          idProductoFk: isUUID ? item.id_producto : null, // Aquí sí acepta null
+          idProductoFk: isUUID ? item.id_producto : null,
           medicamentoTexto: item.medicamento_texto,
           dosis: item.dosis,
           frecuencia: item.frecuencia,
-          // Cambiamos a undefined para que TypeScript esté feliz
           duracionDias: item.duracion_dias ? Number(item.duracion_dias) : undefined, 
           createdBy: usuarioId,
         });
@@ -253,7 +298,8 @@ export class HistorialClinicoService {
         }
         recetaDetallesGuardados.push(detalleGuardado);
       }
-     // --- C. GUARDAR VACUNA (Opcional) ---
+
+      // --- C. GUARDAR VACUNA (Opcional) ---
       if (dto.vacuna) {
         const catalogoVacuna = await queryRunner.manager.getRepository(CatalogoVacuna).findOne({
           where: { id: Number(dto.vacuna.id_vacuna_fk) },
@@ -262,7 +308,7 @@ export class HistorialClinicoService {
         if (!catalogoVacuna) {
           throw new NotFoundException('Vacuna no encontrada en el catalogo.');
         }
-        if (catalogoVacuna.producto) {
+        if (catalogoVacuna.producto && dtoEstado !== 'BORRADOR') {
           await this.descontarProductoClinico(
             queryRunner.manager,
             catalogoVacuna.producto.id,
@@ -277,7 +323,6 @@ export class HistorialClinicoService {
           ? new Date(dto.vacuna.fecha_aplicacion)
           : new Date();
 
-        // Calcular automáticamente la fecha del próximo refuerzo (RF-10, HU-11)
         const fechaProximaDosis = new Date(fechaAplicacion);
         fechaProximaDosis.setDate(fechaProximaDosis.getDate() + catalogoVacuna.diasParaRefuerzo);
 
@@ -293,6 +338,21 @@ export class HistorialClinicoService {
         });
         await queryRunner.manager.save(VacunaAplicada, nuevaVacuna);
       }
+
+      // --- D. GUARDAR EXÁMENES SOLICITADOS ---
+      if (examenes_solicitados && examenes_solicitados.length > 0) {
+        for (const tipoExamen of examenes_solicitados) {
+          const examenSol = queryRunner.manager.create(ExamenSolicitado, {
+            idHistorialFk: hcGuardado.id,
+            tipo: tipoExamen,
+            estado: EstadoExamenSolicitado.SOLICITADO,
+            createdBy: usuarioId,
+            updatedBy: usuarioId,
+          });
+          await queryRunner.manager.save(ExamenSolicitado, examenSol);
+        }
+      }
+
       // --- E. GUARDAR ARCHIVOS ADJUNTOS (Opcional) ---
       this.logger.debug(`Archivos recibidos para historial: ${dto.archivos?.length ?? 0}`);
       if (dto.archivos && dto.archivos.length > 0) {
@@ -305,7 +365,7 @@ export class HistorialClinicoService {
             tipoArchivo:     file.tipo_archivo,
             tipoEstudio:     file.tipo_estudio || 'Otro',
             origen:          'Interno',
-            estadoArchivo:   'Recibido',
+            estadoArchivo:   file.estado_archivo || 'Finalizado',
             fechaEstudio:    new Date(),
             observaciones:   'Archivo adjunto registrado durante la consulta.',
             createdBy:       usuarioId,
@@ -314,32 +374,55 @@ export class HistorialClinicoService {
         }
       }
 
-    // --- D. GUARDAR HOSPITALIZACIÓN (Opcional) ---
+      // --- G. GUARDAR PATOLOGÍAS/DIAGNÓSTICOS (Opcional) ---
+      if (patologias && patologias.length > 0) {
+        for (const pat of patologias) {
+          const nuevaPat = queryRunner.manager.create(HistorialPatologia, {
+            id_historial_fk: hcGuardado.id,
+            id_patologia_fk: pat.id_patologia_fk,
+            tipo: pat.tipo, // 'PRESUNTIVO' | 'DEFINITIVO'
+          });
+          await queryRunner.manager.save(HistorialPatologia, nuevaPat);
+        }
+      }
+
+      // --- H. GUARDAR HOSPITALIZACIÓN (Opcional) ---
       if (dto.hospitalizacion) {
         const nuevaHosp = queryRunner.manager.create(Hospitalizacion, {
-          // 1. Las variables que declaraste con guiones bajos (snake_case) en tu entidad:
           id_historial_fk: hcGuardado.id,
           id_mascota_fk: cita.mascota.id,
           id_veterinario_responsable: cita.id_veterinario_fk,
-
-          // 2. Las variables que declaraste en camelCase (Mapeamos desde el DTO del front):
           fechaIngreso: dto.hospitalizacion.fecha_ingreso ? new Date(dto.hospitalizacion.fecha_ingreso) : new Date(),
           motivoIngreso: dto.hospitalizacion.motivo_ingreso || hcGuardado.diagnostico,
-          estadoActual: dto.hospitalizacion.estado_actual || 'Observacion',
+          estadoActual: dto.hospitalizacion.estado_actual || 'ACTIVA',
           costoPorDia: dto.hospitalizacion.costo_por_dia ? Number(dto.hospitalizacion.costo_por_dia) : 0.00,
-
           createdBy: usuarioId,
         });
-        await queryRunner.manager.save(Hospitalizacion, nuevaHosp);
+        const hospGuardada = await queryRunner.manager.save(Hospitalizacion, nuevaHosp);
+
+        if (dto.hospitalizacion.articulos && dto.hospitalizacion.articulos.length > 0) {
+          for (const art of dto.hospitalizacion.articulos) {
+            const nuevoArt = queryRunner.manager.create(HospitalizacionArticulo, {
+              id_hospitalizacion_fk: hospGuardada.id,
+              descripcion: art.descripcion,
+              cantidad: art.cantidad || 1,
+              observacion: art.observacion || null,
+            });
+            await queryRunner.manager.save(HospitalizacionArticulo, nuevoArt);
+          }
+        }
       }
 
-      // --- E. CERRAR EL CANDADO ---
-      // 1. Cerramos el historial
-      hcGuardado.estado = 'Cerrado';
+      // --- I. CERRAR EL CANDADO ---
+      const estadoDefinitivo = dtoEstado || 'FINALIZADA';
+      hcGuardado.estado = estadoDefinitivo;
       await queryRunner.manager.save(HistorialClinico, hcGuardado);
 
-      // 2. Completamos la cita
-      cita.estado = 'Completada';
+      if (estadoDefinitivo === 'FINALIZADA') {
+        cita.estado = 'Completada';
+      } else {
+        cita.estado = 'En_Curso';
+      }
       cita.updatedBy = usuarioId;
       await queryRunner.manager.save(Cita, cita);
 
@@ -720,6 +803,64 @@ export class HistorialClinicoService {
         id: h.cita.id,
         estado: h.cita.estado,
       } : undefined,
+      turno: h.turno ?? undefined,
+      mucosas: h.mucosas ?? undefined,
+      anamnesis: h.anamnesis ?? undefined,
+      diagnostico_presuntivo: h.diagnostico_presuntivo ?? undefined,
+      diagnostico_definitivo: h.diagnostico_definitivo ?? undefined,
+      exam_ecografia: h.exam_ecografia,
+      exam_rayos_x: h.exam_rayos_x,
+      exam_hemograma: h.exam_hemograma,
+      exam_quimica_sanguinea: h.exam_quimica_sanguinea,
+      exam_otros: h.exam_otros,
+      exam_resultados: h.exam_resultados ?? undefined,
+      seguimientos: h.seguimientos ? h.seguimientos.map(s => ({
+        id: s.id,
+        fecha: s.fecha,
+        hora: s.hora,
+        estado: s.estado,
+        motivo: s.motivo,
+        sintomas: s.sintomas,
+        observaciones: s.observaciones,
+        tratamiento: s.tratamiento,
+        diagnostico_actual: s.diagnosticoActual,
+        recomendaciones: s.recomendaciones,
+        peso_kg: s.pesoKg,
+        temperatura_c: s.temperaturaC,
+        frecuencia_cardiaca: s.frecuenciaCardiaca,
+        frecuencia_respiratoria: s.frecuenciaRespiratoria,
+        mucosas: s.mucosas,
+      })) : [],
+      informes: h.informes ? h.informes.map(inf => ({
+        id: inf.id,
+        tipo: inf.tipo,
+        estado: inf.estado,
+        titulo: inf.titulo,
+        comentario_clinico: inf.comentarioClinico,
+        conclusion: inf.conclusion,
+        recomendaciones: inf.recomendaciones,
+        fecha: inf.fecha,
+        imagenes: inf.imagenes,
+        pdf_generado: inf.pdfGenerado,
+        datos_estructurados: inf.datosEstructurados,
+      })) : [],
+      examenes_solicitados: h.examenesSolicitados ? h.examenesSolicitados.map(ex => ({
+        id: ex.id,
+        tipo: ex.tipo,
+        estado: ex.estado,
+        fecha_solicitud: ex.fechaSolicitud,
+        fecha_realizacion: ex.fechaRealizacion,
+        informe_id: ex.informeId,
+      })) : [],
+      patologias: h.patologias ? h.patologias.map(p => ({
+        id: p.id,
+        tipo: p.tipo,
+        patologia: p.patologia ? {
+          id: p.patologia.id,
+          nombre: p.patologia.nombre,
+          codigoCie: p.patologia.codigoCie,
+        } : undefined,
+      })) : [],
     };
 
     if (h.recetas) {
@@ -759,7 +900,10 @@ export class HistorialClinicoService {
 
   async findPendientesCobro(): Promise<any[]> {
     const historiales = await this.historialRepository.find({
-      where: { estado: 'Cerrado' },
+      where: [
+        { estado: 'Cerrado' },
+        { estado: 'FINALIZADA' }
+      ],
       relations: ['expediente', 'expediente.mascota', 'expediente.mascota.dueno', 'veterinario', 'cita'],
       order: { fecha_consulta: 'DESC' },
     });
@@ -829,6 +973,28 @@ export class HistorialClinicoService {
     }
 
     return this.mapToResponse(historial);
+  }
+
+  async findByCita(idCita: string): Promise<HistorialClinicoResponseDto | null> {
+    const h = await this.historialRepository.findOne({
+      where: { id_cita_fk: idCita },
+      relations: [
+        'expediente',
+        'expediente.mascota',
+        'veterinario',
+        'cita',
+        'cita.mascota',
+        'recetas',
+        'recetas.detalles',
+        'recetas.detalles.producto',
+        'patologias',
+        'patologias.patologia',
+        'seguimientos',
+        'informes',
+      ],
+    });
+    if (!h) return null;
+    return this.mapToResponse(h);
   }
 
   async update(id: string, updateDto: UpdateHistorialClinicoDto, usuarioId: string): Promise<HistorialClinicoResponseDto> {
@@ -1145,6 +1311,288 @@ export class HistorialClinicoService {
         .text('Firma y Sello', 350, y + 17, { width: 150, align: 'center' });
 
       doc.fontSize(8).fillColor('#999999').text('Documento emitido de manera digital por el sistema de gestión de Animal Vet.', 40, 750, { align: 'center' });
+
+      doc.end();
+    });
+  }
+
+  async generarFichaClinicaPdf(id: string): Promise<Buffer> {
+    const h = await this.historialRepository.findOne({
+      where: { id },
+      relations: [
+        'expediente',
+        'expediente.mascota',
+        'expediente.mascota.dueno',
+        'expediente.mascota.raza',
+        'expediente.mascota.raza.especie',
+        'veterinario',
+        'cita',
+        'cita.mascota',
+        'recetas',
+        'recetas.detalles',
+        'recetas.detalles.producto',
+        'vacunasAplicadas',
+        'vacunasAplicadas.vacuna',
+        'hospitalizacion',
+        'hospitalizacion.insumos',
+        'hospitalizacion.insumos.producto',
+        'hospitalizacion.insumos.servicio',
+        'hospitalizacion.vacunasAplicadas',
+        'hospitalizacion.vacunasAplicadas.vacuna',
+        'hospitalizacion.articulosIngresoList',
+        'seguimientos',
+        'seguimientos.veterinario',
+        'patologias',
+        'patologias.patologia',
+      ],
+    });
+
+    if (!h) {
+      throw new NotFoundException(`El historial clínico no existe.`);
+    }
+
+    const PDFDocument = require('pdfkit');
+    return new Promise((resolve, reject) => {
+      const doc = new PDFDocument({ margin: 40, size: 'A4' });
+      const buffers: Buffer[] = [];
+      doc.on('data', data => buffers.push(data));
+      doc.on('end', () => resolve(Buffer.concat(buffers)));
+      doc.on('error', err => reject(err));
+
+      const AZUL = '#1a3a5c';
+      const GRIS = '#555555';
+      const LINEA = '#dddddd';
+      const NEGRO = '#1a1a1a';
+
+      // Header Banner
+      doc.rect(0, 0, doc.page.width, 80).fill(AZUL);
+      doc.fillColor('white').font('Helvetica-Bold').fontSize(22).text('ANIMAL VET', 40, 20);
+      doc.fontSize(9).font('Helvetica-Oblique').text('Clínica Veterinaria & Hospital de Mascotas', 40, 48);
+
+      const fechaStr = new Date(h.fecha_consulta).toLocaleDateString('es-BO', {
+        day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
+      });
+      doc.fontSize(9).font('Helvetica').text(`Fecha: ${fechaStr}`, 350, 25, { width: 200, align: 'right' });
+      doc.text(`Ficha de Consulta: #${h.id.slice(-8).toUpperCase()}`, 350, 40, { width: 200, align: 'right' });
+      doc.text(`Estado: ${h.estado}`, 350, 55, { width: 200, align: 'right' });
+
+      let y = 95;
+
+      // ── SECCIÓN 1: DATOS DEL PACIENTE Y PROPIETARIO ──
+      doc.fillColor(AZUL).font('Helvetica-Bold').fontSize(11).text('1. DATOS DEL PACIENTE Y PROPIETARIO', 40, y);
+      y += 15;
+      doc.moveTo(40, y).lineTo(550, y).strokeColor(AZUL).lineWidth(1).stroke();
+      y += 8;
+
+      const m = h.expediente?.mascota;
+      const dueno = m?.dueno;
+      doc.fillColor(NEGRO).font('Helvetica').fontSize(9);
+      
+      // Column 1: Paciente
+      doc.font('Helvetica-Bold').text('PACIENTE:', 40, y);
+      doc.font('Helvetica').text(`Nombre: ${m?.nombre || '—'}`, 40, y + 14);
+      doc.text(`Especie: ${m?.raza?.especie?.nombre || '—'}`, 40, y + 26);
+      doc.text(`Raza: ${m?.raza?.nombre || '—'}`, 40, y + 38);
+      doc.text(`Sexo: ${m?.sexo === 'M' ? 'Macho' : 'Hembra'}`, 40, y + 50);
+
+      // Column 2: Propietario
+      doc.font('Helvetica-Bold').text('PROPIETARIO:', 200, y);
+      doc.font('Helvetica').text(`Nombre: ${dueno ? `${dueno.nombres} ${dueno.apellidos}` : '—'}`, 200, y + 14);
+      doc.text(`Email: ${dueno?.email || '—'}`, 200, y + 26);
+      doc.text(`Teléfono: ${dueno?.telefono || '—'}`, 200, y + 38);
+
+      // Column 3: Constantes vitales
+      doc.font('Helvetica-Bold').text('CONSTANTES VITALES:', 370, y);
+      doc.font('Helvetica').text(`Peso: ${h.peso_kg || '—'} kg`, 370, y + 14);
+      doc.text(`Temperatura: ${h.temperatura_c || '—'} °C`, 370, y + 26);
+      doc.text(`Frec. Cardíaca: ${h.frecuencia_cardiaca || '—'} lpm`, 370, y + 38);
+      doc.text(`Frec. Respiratoria: ${h.frecuencia_respiratoria || '—'} rpm`, 370, y + 50);
+
+      y += 70;
+
+      // ── SECCIÓN 2: DETALLES DE LA ATENCIÓN ──
+      doc.fillColor(AZUL).font('Helvetica-Bold').fontSize(11).text('2. DETALLES DE LA ATENCIÓN Y ANAMNESIS', 40, y);
+      y += 15;
+      doc.moveTo(40, y).lineTo(550, y).strokeColor(AZUL).lineWidth(1).stroke();
+      y += 8;
+
+      doc.fillColor(NEGRO).font('Helvetica').fontSize(9);
+      doc.font('Helvetica-Bold').text('Tipo de Atención: ', 40, y, { continued: true }).font('Helvetica').text(h.tipo_atencion || 'Consulta');
+      doc.font('Helvetica-Bold').text('   Turno: ', 200, y, { continued: true }).font('Helvetica').text(h.turno || '—');
+      doc.font('Helvetica-Bold').text('   Mucosas: ', 350, y, { continued: true }).font('Helvetica').text(h.mucosas || '—');
+      y += 18;
+
+      doc.font('Helvetica-Bold').text('Motivo de Consulta:');
+      doc.font('Helvetica').text(h.motivo_consulta || '—', 40, y + 12, { width: 510 });
+      y += doc.heightOfString(h.motivo_consulta || '—', { width: 510 }) + 20;
+
+      if (h.sintomas) {
+        doc.font('Helvetica-Bold').text('Síntomas Reportados:');
+        doc.font('Helvetica').text(h.sintomas, 40, y + 12, { width: 510 });
+        y += doc.heightOfString(h.sintomas, { width: 510 }) + 20;
+      }
+
+      if (h.anamnesis) {
+        doc.font('Helvetica-Bold').text('Anamnesis / Historia Previa:');
+        doc.font('Helvetica').text(h.anamnesis, 40, y + 12, { width: 510 });
+        y += doc.heightOfString(h.anamnesis, { width: 510 }) + 20;
+      }
+
+      // Check if page overflow
+      if (y > 700) { doc.addPage(); y = 40; }
+
+      // ── SECCIÓN 3: DIAGNÓSTICOS Y NOTAS INTERNAS ──
+      doc.fillColor(AZUL).font('Helvetica-Bold').fontSize(11).text('3. DIAGNÓSTICOS Y NOTAS INTERNAS', 40, y);
+      y += 15;
+      doc.moveTo(40, y).lineTo(550, y).strokeColor(AZUL).lineWidth(1).stroke();
+      y += 8;
+
+      doc.fillColor(NEGRO).font('Helvetica').fontSize(9);
+      doc.font('Helvetica-Bold').text('Diagnóstico principal (Texto libre):');
+      doc.font('Helvetica').text(h.diagnostico || '—', 40, y + 12, { width: 510 });
+      y += doc.heightOfString(h.diagnostico || '—', { width: 510 }) + 20;
+
+      if (h.diagnostico_presuntivo) {
+        doc.font('Helvetica-Bold').text('Diagnóstico Presuntivo (Clínico):');
+        doc.font('Helvetica').text(h.diagnostico_presuntivo, 40, y + 12, { width: 510 });
+        y += doc.heightOfString(h.diagnostico_presuntivo, { width: 510 }) + 20;
+      }
+
+      if (h.diagnostico_definitivo) {
+        doc.font('Helvetica-Bold').text('Diagnóstico Definitivo (Clínico):');
+        doc.font('Helvetica').text(h.diagnostico_definitivo, 40, y + 12, { width: 510 });
+        y += doc.heightOfString(h.diagnostico_definitivo, { width: 510 }) + 20;
+      }
+
+      // Diagnósticos estructurados del catálogo
+      if (h.patologias && h.patologias.length > 0) {
+        doc.font('Helvetica-Bold').text('Patologías registradas (Catálogo CIE):');
+        h.patologias.forEach(p => {
+          const cod = p.patologia?.codigoCie ? ` [${p.patologia.codigoCie}]` : '';
+          doc.font('Helvetica').text(`• (${p.tipo}) - ${p.patologia?.nombre || 'Patología'}${cod}`, 50, y + 10);
+          y += 14;
+        });
+        y += 10;
+      }
+
+      if (h.notas_internas) {
+        doc.font('Helvetica-Bold').text('Notas Internas / Indicaciones Especiales:');
+        doc.font('Helvetica').text(h.notas_internas, 40, y + 12, { width: 510 });
+        y += doc.heightOfString(h.notas_internas, { width: 510 }) + 20;
+      }
+
+      if (y > 700) { doc.addPage(); y = 40; }
+
+      // ── SECCIÓN 4: EXÁMENES COMPLEMENTARIOS ──
+      doc.fillColor(AZUL).font('Helvetica-Bold').fontSize(11).text('4. EXÁMENES COMPLEMENTARIOS', 40, y);
+      y += 15;
+      doc.moveTo(40, y).lineTo(550, y).strokeColor(AZUL).lineWidth(1).stroke();
+      y += 8;
+
+      doc.fillColor(NEGRO).font('Helvetica').fontSize(9);
+      const exams: string[] = [];
+      if (h.exam_ecografia) exams.push('Ecografía');
+      if (h.exam_rayos_x) exams.push('Rayos X');
+      if (h.exam_hemograma) exams.push('Hemograma');
+      if (h.exam_quimica_sanguinea) exams.push('Química Sanguínea');
+      if (h.exam_otros) exams.push('Otros estudios');
+
+      doc.font('Helvetica-Bold').text('Estudios Solicitados: ', 40, y, { continued: true })
+        .font('Helvetica').text(exams.length > 0 ? exams.join(', ') : 'Ninguno');
+      y += 16;
+
+      if (h.exam_resultados) {
+        doc.font('Helvetica-Bold').text('Resultados e Interpretación de Estudios:');
+        doc.font('Helvetica').text(h.exam_resultados, 40, y + 12, { width: 510 });
+        y += doc.heightOfString(h.exam_resultados, { width: 510 }) + 20;
+      }
+
+      if (y > 700) { doc.addPage(); y = 40; }
+
+      // ── SECCIÓN 5: RECETA MÉDICA Y TRATAMIENTO ──
+      if (h.recetas && h.recetas.length > 0) {
+        doc.fillColor(AZUL).font('Helvetica-Bold').fontSize(11).text('5. RECETAS MÉDICAS EMITIDAS', 40, y);
+        y += 15;
+        doc.moveTo(40, y).lineTo(550, y).strokeColor(AZUL).lineWidth(1).stroke();
+        y += 8;
+
+        h.recetas.forEach((receta, idx) => {
+          doc.fillColor(NEGRO).font('Helvetica-Bold').fontSize(9).text(`Receta #${idx + 1}:`, 40, y);
+          y += 14;
+          if (receta.detalles && receta.detalles.length > 0) {
+            receta.detalles.forEach(d => {
+              const med = d.producto?.nombre || d.medicamentoTexto || 'Medicamento';
+              const dur = d.duracionDias ? ` por ${d.duracionDias} días` : '';
+              doc.font('Helvetica').text(`• ${med} — Dosis: ${d.dosis} — Frecuencia: ${d.frecuencia}${dur}`, 50, y);
+              y += 14;
+            });
+          }
+          if (receta.indicacionesGrales) {
+            doc.font('Helvetica-Oblique').text(`Indicaciones: ${receta.indicacionesGrales}`, 50, y);
+            y += 14;
+          }
+          y += 10;
+        });
+      }
+
+      if (y > 700) { doc.addPage(); y = 40; }
+
+      // ── SECCIÓN 6: EVOLUCIÓN CLÍNICA Y HOSPITALIZACIÓN ──
+      if ((h.seguimientos && h.seguimientos.length > 0) || h.hospitalizacion) {
+        doc.fillColor(AZUL).font('Helvetica-Bold').fontSize(11).text('6. EVOLUCIÓN CLÍNICA Y HOSPITALIZACIÓN', 40, y);
+        y += 15;
+        doc.moveTo(40, y).lineTo(550, y).strokeColor(AZUL).lineWidth(1).stroke();
+        y += 8;
+
+        if (h.hospitalizacion) {
+          doc.fillColor(NEGRO).font('Helvetica-Bold').fontSize(9).text('Datos de Internación:', 40, y);
+          doc.font('Helvetica').text(`Estado: ${h.hospitalizacion.estadoActual}  |  Costo Diario: Bs. ${h.hospitalizacion.costoPorDia}  |  Ingreso: ${new Date(h.hospitalizacion.fechaIngreso).toLocaleDateString('es-BO')}`, 40, y + 14);
+          y += 28;
+
+          if (h.hospitalizacion.articulosIngresoList && h.hospitalizacion.articulosIngresoList.length > 0) {
+            doc.font('Helvetica-Bold').text('Artículos de Ingreso:', 40, y);
+            y += 12;
+            h.hospitalizacion.articulosIngresoList.forEach(art => {
+              const obs = art.observacion ? ` (${art.observacion})` : '';
+              doc.font('Helvetica').text(`• ${art.descripcion} x${art.cantidad}${obs}`, 50, y);
+              y += 14;
+            });
+            y += 10;
+          }
+        }
+
+        if (h.seguimientos && h.seguimientos.length > 0) {
+          doc.fillColor(NEGRO).font('Helvetica-Bold').fontSize(9).text('Controles y Seguimientos Clínicos:', 40, y);
+          y += 14;
+          h.seguimientos.forEach(ev => {
+            const fechaStr = new Date(ev.fecha).toLocaleDateString('es-BO');
+            doc.font('Helvetica-Bold').text(`Seguimiento del ${fechaStr} a las ${ev.hora}:`, 50, y);
+            y += 12;
+            const detailText = `Motivo: ${ev.motivo}  |  Síntomas: ${ev.sintomas || '—'}  |  Obs: ${ev.observaciones || '—'}  |  Diagnóstico Actual: ${ev.diagnosticoActual || '—'}`;
+            doc.font('Helvetica').text(detailText, 60, y, { width: 490 });
+            y += doc.heightOfString(detailText, { width: 490 }) + 6;
+
+            if (ev.tratamiento || ev.recomendaciones) {
+              const tratText = `Tratamiento: ${ev.tratamiento || '—'}  |  Recomendaciones: ${ev.recomendaciones || '—'}`;
+              doc.font('Helvetica-Oblique').text(tratText, 60, y, { width: 490 });
+              y += doc.heightOfString(tratText, { width: 490 }) + 6;
+            }
+            y += 10;
+
+            if (y > 700) { doc.addPage(); y = 40; }
+          });
+        }
+      }
+
+      // Footer signature
+      y = Math.max(y + 20, doc.page.height - 130);
+      doc.moveTo(350, y).lineTo(500, y).strokeColor(GRIS).lineWidth(0.75).stroke();
+      doc.fillColor(NEGRO).font('Helvetica-Bold').fontSize(9)
+        .text(`Dr(a). ${h.veterinario?.nombres || ''} ${h.veterinario?.apellidos || ''}`, 350, y + 5, { width: 150, align: 'center' });
+      doc.font('Helvetica').fontSize(8).fillColor(GRIS)
+        .text('Médico Veterinario Firmante', 350, y + 17, { width: 150, align: 'center' });
+
+      doc.fontSize(8).fillColor('#999999').text('Ficha Clínica de consulta oficial emitida por el sistema Animal Vet. Válida únicamente con firma y sello del veterinario.', 40, doc.page.height - 30, { align: 'center', width: 510 });
 
       doc.end();
     });

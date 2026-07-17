@@ -127,6 +127,52 @@ export class HistorialClinicoResponseDto {
   @ApiProperty()
   triaje_completado: boolean;
 
+  @ApiProperty({ required: false })
+  turno?: string;
+
+  @ApiProperty({ required: false })
+  mucosas?: string;
+
+  @ApiProperty({ required: false })
+  anamnesis?: string;
+
+  @ApiProperty({ required: false })
+  diagnostico_presuntivo?: string;
+
+  @ApiProperty({ required: false })
+  diagnostico_definitivo?: string;
+
+  // Exámenes Complementarios Checkboxes
+  @ApiProperty({ required: false })
+  exam_ecografia?: boolean;
+
+  @ApiProperty({ required: false })
+  exam_rayos_x?: boolean;
+
+  @ApiProperty({ required: false })
+  exam_hemograma?: boolean;
+
+  @ApiProperty({ required: false })
+  exam_quimica_sanguinea?: boolean;
+
+  @ApiProperty({ required: false })
+  exam_otros?: boolean;
+
+  @ApiProperty({ required: false })
+  exam_resultados?: string;
+
+  @ApiProperty({ required: false, type: 'array', items: { type: 'object' } })
+  seguimientos?: any[];
+
+  @ApiProperty({ required: false, type: 'array', items: { type: 'object' } })
+  informes?: any[];
+
+  @ApiProperty({ required: false, type: 'array', items: { type: 'object' } })
+  examenes_solicitados?: any[];
+
+  @ApiProperty({ required: false, type: 'array', items: { type: 'object' } })
+  patologias?: any[];
+
   @ApiProperty({ description: 'Estado del historial clínico (Abierto, Cerrado, Facturado)', example: 'Abierto' })
   estado: string;
 

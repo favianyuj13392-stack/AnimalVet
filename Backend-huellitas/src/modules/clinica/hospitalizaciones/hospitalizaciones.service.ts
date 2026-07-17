@@ -6,11 +6,18 @@ import { CreateHospitalizacioneDto } from './dto/create-hospitalizacione.dto';
 import { UpdateHospitalizacioneDto } from './dto/update-hospitalizacione.dto';
 import { HospitalizacionesResponseDto } from './dto/hospitalizaciones-response.dto';
 
+import { HospitalizacionTratamientoMonitoreo } from './entities/hospitalizacion-tratamiento-monitoreo.entity';
+import { HospitalizacionAlimentacion } from './entities/hospitalizacion-alimentacion.entity';
+
 @Injectable()
 export class HospitalizacionesService {
   constructor(
     @InjectRepository(Hospitalizacion)
     private readonly hospitalizacionRepo: Repository<Hospitalizacion>,
+    @InjectRepository(HospitalizacionTratamientoMonitoreo)
+    private readonly tratamientoRepo: Repository<HospitalizacionTratamientoMonitoreo>,
+    @InjectRepository(HospitalizacionAlimentacion)
+    private readonly alimentacionRepo: Repository<HospitalizacionAlimentacion>,
   ) {}
 
   private mapToResponse(h: Hospitalizacion): any {
@@ -25,6 +32,16 @@ export class HospitalizacionesService {
       condicion_egreso:    h.condicionEgreso   ?? null,
       diagnostico_egreso:  h.diagnosticoEgreso ?? null,
       instrucciones_alta:  h.instruccionesAlta ?? null,
+      articulos_ingreso:   h.articulosIngresoList && h.articulosIngresoList.length > 0 
+        ? h.articulosIngresoList.map(a => `${a.descripcion} (x${a.cantidad}${a.observacion ? ` - ${a.observacion}` : ''})`).join(", ") 
+        : (h.articulosIngreso ?? null),
+      articulos: h.articulosIngresoList ? h.articulosIngresoList.map(a => ({
+        id: a.id,
+        descripcion: a.descripcion,
+        cantidad: a.cantidad,
+        observacion: a.observacion,
+      })) : [],
+      medicion_post_operatoria: h.medicionPostOperatoria ?? null,
     mascota: h.mascota ? {
         id: h.mascota.id,
         nombre: h.mascota.nombre,
@@ -67,6 +84,26 @@ export class HospitalizacionesService {
         nombre_archivo: a.nombreArchivo,
         tipo_estudio: a.tipoEstudio,
         fecha_estudio: a.fechaEstudio,
+      })) : [],
+      tratamientos: h.tratamientos ? h.tratamientos.map(t => ({
+        id: t.id,
+        medicamento: t.medicamento,
+        dosis: t.dosis,
+        via: t.via,
+        ml: t.ml ? Number(t.ml) : null,
+        hora: t.hora,
+        fluido: t.fluido,
+        fluidoDosis: t.fluidoDosis,
+        mlHr: t.mlHr ? Number(t.mlHr) : null,
+        tiempoInicioFin: t.tiempoInicioFin,
+        fecha: t.fecha,
+      })) : [],
+      alimentacion: h.alimentacion ? h.alimentacion.map(a => ({
+        id: a.id,
+        dia: a.dia,
+        hora: a.hora,
+        tipo: a.tipo,
+        cantidad: a.cantidad,
       })) : []
     };
   }
@@ -85,7 +122,10 @@ export class HospitalizacionesService {
         'insumos.servicio', 
         'vacunasAplicadas', 
         'vacunasAplicadas.vacuna',
-        'archivos' // 👈 AÑADIR ESTO AL ARREGLO DE RELACIONES
+        'archivos',
+        'tratamientos',
+        'alimentacion',
+        'articulosIngresoList',
       ],
     });
 
@@ -106,6 +146,8 @@ export class HospitalizacionesService {
       motivoIngreso: createDto.motivo_ingreso,
       estadoActual: createDto.estado_actual ?? 'Observacion',
       costoPorDia: createDto.costo_por_dia ?? 150.00,
+      articulosIngreso: createDto.articulos_ingreso ?? null,
+      medicionPostOperatoria: createDto.medicion_post_operatoria ?? null,
       createdBy: creatorId,
       createdByUser: { id: creatorId } as any,
     });
@@ -119,7 +161,7 @@ export class HospitalizacionesService {
     if (estado) where.estadoActual = estado;
     const hospitalizaciones = await this.hospitalizacionRepo.find({
       where,
-      relations: ['mascota', 'mascota.raza', 'veterinario', 'insumos', 'insumos.producto', 'insumos.servicio', 'vacunasAplicadas', 'vacunasAplicadas.vacuna'],
+      relations: ['mascota', 'mascota.raza', 'veterinario', 'insumos', 'insumos.producto', 'insumos.servicio', 'vacunasAplicadas', 'vacunasAplicadas.vacuna', 'articulosIngresoList'],
       order: { fechaIngreso: 'DESC' },
     });
     return hospitalizaciones.map(h => this.mapToResponse(h));
@@ -128,7 +170,7 @@ export class HospitalizacionesService {
   async findByMascota(idMascota: string): Promise<any[]> {
     const hosps = await this.hospitalizacionRepo.find({
       where: { id_mascota_fk: idMascota } as any,
-      relations: ['mascota', 'mascota.raza', 'veterinario', 'insumos', 'insumos.producto', 'vacunasAplicadas', 'vacunasAplicadas.vacuna', 'archivos'],
+      relations: ['mascota', 'mascota.raza', 'veterinario', 'insumos', 'insumos.producto', 'vacunasAplicadas', 'vacunasAplicadas.vacuna', 'archivos', 'articulosIngresoList'],
       order: { fechaIngreso: 'DESC' } as any,
     });
     return hosps.map(h => this.mapToResponse(h));
@@ -155,6 +197,8 @@ export class HospitalizacionesService {
     if (updateDto.diagnostico_egreso !== undefined)  hospitalizacion.diagnosticoEgreso  = updateDto.diagnostico_egreso;
     if (updateDto.instrucciones_alta !== undefined)  hospitalizacion.instruccionesAlta  = updateDto.instrucciones_alta;
     if (updateDto.costo_por_dia !== undefined)        hospitalizacion.costoPorDia        = updateDto.costo_por_dia;
+    if (updateDto.articulos_ingreso !== undefined)    hospitalizacion.articulosIngreso   = updateDto.articulos_ingreso;
+    if (updateDto.medicion_post_operatoria !== undefined) hospitalizacion.medicionPostOperatoria = updateDto.medicion_post_operatoria;
     hospitalizacion.updatedBy = updaterId;
 
     const guardada = await this.hospitalizacionRepo.save(hospitalizacion);
@@ -165,5 +209,43 @@ export class HospitalizacionesService {
     const hospitalizacion = await this.findEntity(id);
     await this.hospitalizacionRepo.softRemove(hospitalizacion);
     return { mensaje: `Hospitalización con ID ${id} desactivada correctamente.` };
+  }
+
+  async addTratamiento(idHospitalizacion: string, data: any, userId: string): Promise<any> {
+    const nuevo = this.tratamientoRepo.create({
+      id_hospitalizacion_fk: idHospitalizacion,
+      medicamento: data.medicamento,
+      dosis: data.dosis,
+      via: data.via,
+      ml: data.ml ? Number(data.ml) : null,
+      hora: data.hora,
+      fluido: data.fluido,
+      fluidoDosis: data.fluido_dosis,
+      mlHr: data.ml_hr ? Number(data.ml_hr) : null,
+      tiempoInicioFin: data.tiempo_inicio_fin,
+      fecha: data.fecha || new Date(),
+      createdBy: userId,
+    });
+    return await this.tratamientoRepo.save(nuevo);
+  }
+
+  async removeTratamiento(idTratamiento: string): Promise<any> {
+    return await this.tratamientoRepo.delete(idTratamiento);
+  }
+
+  async addAlimentacion(idHospitalizacion: string, data: any, userId: string): Promise<any> {
+    const nuevo = this.alimentacionRepo.create({
+      id_hospitalizacion_fk: idHospitalizacion,
+      dia: data.dia,
+      hora: data.hora,
+      tipo: data.tipo,
+      cantidad: data.cantidad,
+      createdBy: userId,
+    });
+    return await this.alimentacionRepo.save(nuevo);
+  }
+
+  async removeAlimentacion(idAlimentacion: string): Promise<any> {
+    return await this.alimentacionRepo.delete(idAlimentacion);
   }
 }

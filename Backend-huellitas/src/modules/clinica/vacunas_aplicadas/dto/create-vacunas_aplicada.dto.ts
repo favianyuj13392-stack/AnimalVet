@@ -6,17 +6,20 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 
 export class CreateVacunasAplicadaDto {
-  // 👇 Obligatorio SOLO si no viene la hospitalización
   @ApiProperty({ required: false, example: 'uuid-historial' })
-  @ValidateIf(o => !o.id_hospitalizacion_fk)
   @IsUUID('all')
+  @IsOptional()
   id_historial_fk?: string;
 
-  // 👇 Obligatorio SOLO si no viene el historial
   @ApiProperty({ required: false, example: 'uuid-hospitalizacion' })
-  @ValidateIf(o => !o.id_historial_fk)
   @IsUUID('all')
+  @IsOptional()
   id_hospitalizacion_fk?: string;
+
+  @ApiProperty({ required: false, example: 'uuid-mascota' })
+  @IsUUID('all')
+  @IsOptional()
+  id_mascota_fk?: string;
 
   @ApiProperty({ example: 1, description: 'ID de la vacuna del catálogo' })
   @IsInt()

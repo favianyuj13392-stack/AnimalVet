@@ -1,6 +1,6 @@
 import {
   Controller, Get, Post, Body, Patch, Param, ParseUUIDPipe,
-  Delete, UseGuards, Req, ForbiddenException, Query,
+  Delete, UseGuards, Req, ForbiddenException, Query, Res, Header,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
 import { HistorialClinicoService } from './historial_clinico.service';
@@ -75,6 +75,17 @@ export class HistorialClinicoController {
     return this.historialService.findExpedienteCompleto(mascotaId, req.user.id);
   }
 
+  // ── Obtener por cita (borrador o finalizado) ──
+  @Get('cita/:idCita')
+  @Roles('Administrador', 'Veterinario', 'Cajero', 'Cliente')
+  @ApiOperation({ summary: 'Obtener el historial clínico de una cita (si existe borrador o finalizado)' })
+  @ApiParam({ name: 'idCita', description: 'UUID de la cita' })
+  findByCita(
+    @Param('idCita', ParseUUIDPipe) idCita: string,
+  ) {
+    return this.historialService.findByCita(idCita);
+  }
+
   // ── Rutas con parámetro UUID ──────────────────────────────────────────────────
 
   @Get(':id')
@@ -87,6 +98,24 @@ export class HistorialClinicoController {
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<HistorialClinicoResponseDto> {
     return this.historialService.findOne(id);
+  }
+
+  @Get(':id/pdf')
+  @Roles('Administrador', 'Veterinario', 'Cajero', 'Cliente')
+  @Header('Content-Type', 'application/pdf')
+  @ApiOperation({ summary: 'Generar PDF de la Ficha Clínica completa' })
+  @ApiParam({ name: 'id', description: 'UUID del historial clínico' })
+  async generarFichaClinicaPdf(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Res() res: any,
+  ) {
+    const buffer = await this.historialService.generarFichaClinicaPdf(id);
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `inline; filename="ficha-clinica-${id.slice(-8)}.pdf"`,
+      'Content-Length': buffer.length,
+    });
+    res.end(buffer);
   }
 
   @Patch(':id')

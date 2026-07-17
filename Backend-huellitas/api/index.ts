@@ -27,7 +27,7 @@ async function bootstrap() {
   app.use(helmet());
   app.use(json({ limit: '5mb' }));
   app.use(urlencoded({ extended: true, limit: '5mb' }));
-  app.setGlobalPrefix('api/huellitas');
+  app.setGlobalPrefix('api/animalvet');
 
   const corsOptions = getCorsOptions(myServer.domainFrontend);
   app.enableCors(corsOptions);

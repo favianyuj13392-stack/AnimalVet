@@ -23,6 +23,30 @@ export class MonitoreoDiario extends BaseEntity {
   @Column({ name: 'freq_respiratoria', type: 'integer', nullable: true })
   freqRespiratoria: number | null;
 
+  @Column({ name: 'vomito_diarrea_convulsion', type: 'varchar', length: 100, nullable: true })
+  vomitoDiarreaConvulsion: string | null;
+
+  @Column({ name: 'presion', type: 'varchar', length: 50, nullable: true })
+  presion: string | null;
+
+  @Column({ name: 'spo2', type: 'integer', nullable: true })
+  spo2: number | null;
+
+  @Column({ name: 'tllc', type: 'varchar', length: 50, nullable: true })
+  tllc: string | null;
+
+  @Column({ name: 'mucosa', type: 'varchar', length: 100, nullable: true })
+  mucosa: string | null;
+
+  @Column({ name: 'peso_kg', type: 'numeric', precision: 5, scale: 2, nullable: true })
+  pesoKg: number | null;
+
+  @Column({ name: 'produccion_orina_ml', type: 'integer', nullable: true })
+  produccionOrinaMl: number | null;
+
+  @Column({ name: 'glasgow', type: 'integer', nullable: true })
+  glasgow: number | null;
+
   @Column({ type: 'text' })
   observaciones: string;
 

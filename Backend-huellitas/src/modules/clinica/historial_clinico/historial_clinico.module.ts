@@ -11,10 +11,22 @@ import { MonitoreoDiario } from '../monitoreo_diario/entities/monitoreo_diario.e
 import { LogsSistemaModule } from '../../core/logs_sistema/logs_sistema.module';
 import { CitasModule } from '../citas/citas.module';
 import { MensajeroModule } from '../../comunicacion/mensajero/mensajero.module';
+import { HistorialPatologia } from './entities/historial-patologia.entity';
+import { Patologia } from '../../core/patologias/entities/patologia.entity';
+import { ExamenSolicitado } from '../examenes_solicitados/entities/examen-solicitado.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([HistorialClinico, Cita, ExpedienteClinico, Mascota, MonitoreoDiario]),
+    TypeOrmModule.forFeature([
+      HistorialClinico,
+      Cita,
+      ExpedienteClinico,
+      Mascota,
+      MonitoreoDiario,
+      HistorialPatologia,
+      Patologia,
+      ExamenSolicitado,
+    ]),
     ExpedienteClinicoModule,
     LogsSistemaModule,
     CitasModule,

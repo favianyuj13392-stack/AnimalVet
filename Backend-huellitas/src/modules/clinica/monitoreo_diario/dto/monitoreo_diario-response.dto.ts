@@ -39,6 +39,30 @@ export class MonitoreoDiarioResponseDto {
   @ApiProperty({ type: MonitoreoVeterinarioResponseDto, required: false })
   veterinario?: MonitoreoVeterinarioResponseDto;
 
+  @ApiProperty({ required: false })
+  vomito_diarrea_convulsion?: string;
+
+  @ApiProperty({ required: false })
+  presion?: string;
+
+  @ApiProperty({ required: false })
+  spo2?: number;
+
+  @ApiProperty({ required: false })
+  tllc?: string;
+
+  @ApiProperty({ required: false })
+  mucosa?: string;
+
+  @ApiProperty({ required: false })
+  peso_kg?: number;
+
+  @ApiProperty({ required: false })
+  produccion_orina_ml?: number;
+
+  @ApiProperty({ required: false })
+  glasgow?: number;
+
   @ApiProperty()
   fecha_registro: Date;
 }

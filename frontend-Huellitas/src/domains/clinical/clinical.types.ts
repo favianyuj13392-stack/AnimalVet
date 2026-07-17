@@ -35,6 +35,29 @@ export interface HistorialClinico {
   createdAt?: string;
   updatedAt?: string;
   deletedAt?: string | null;
+  hospitalizacion?: any;
+  archivos_adjuntos?: any[];
+  triaje?: any;
+
+  turno?: string;
+  mucosas?: string;
+  anamnesis?: string;
+  diagnostico_presuntivo?: string;
+  diagnostico_definitivo?: string;
+
+  // Estructuras clínicas independientes
+  seguimientos?: SeguimientoClinico[];
+  informes?: InformeClinico[];
+  examenes_solicitados?: ExamenSolicitado[];
+  patologias?: HistorialPatologia[];
+
+  // Exámenes complementarios
+  exam_ecografia?: boolean;
+  exam_rayos_x?: boolean;
+  exam_hemograma?: boolean;
+  exam_quimica_sanguinea?: boolean;
+  exam_otros?: boolean;
+  exam_resultados?: string;
   veterinario?: {
     id: string;
     nombres: string;
@@ -93,6 +116,35 @@ export interface CreateHistorialClinicoDto {
   tipo_atencion: string;
   triaje_completado?: boolean;
   id_cita_fk: string;
+
+  turno?: string;
+  mucosas?: string;
+  anamnesis?: string;
+  diagnostico_presuntivo?: string;
+  diagnostico_definitivo?: string;
+
+  // Evolución días 2 al 5
+  evolucion_dia2_sintomas?: string;
+  evolucion_dia2_obs?: string;
+  evolucion_dia2_trat?: string;
+  evolucion_dia3_sintomas?: string;
+  evolucion_dia3_obs?: string;
+  evolucion_dia3_trat?: string;
+  evolucion_dia4_sintomas?: string;
+  evolucion_dia4_obs?: string;
+  evolucion_dia4_trat?: string;
+  evolucion_dia5_sintomas?: string;
+  evolucion_dia5_obs?: string;
+  evolucion_dia5_trat?: string;
+
+  // Exámenes complementarios
+  exam_ecografia?: boolean;
+  exam_rayos_x?: boolean;
+  exam_hemograma?: boolean;
+  exam_quimica_sanguinea?: boolean;
+  exam_fluidoterapia?: boolean;
+  exam_otros?: boolean;
+  exam_resultados?: string;
 }
 
 export interface UpdateHistorialClinicoDto {
@@ -254,6 +306,10 @@ export interface Hospitalizacion {
   insumos?: any[]; 
   vacunas_aplicadas?: any[];
   archivos?: ArchivoAdjunto[]; // 👈 ¡ESTA ES LA LÍNEA MÁGICA QUE FALTABA!
+  articulos_ingreso?: string | null;
+  medicion_post_operatoria?: string | null;
+  tratamientos?: HospitalizacionTratamientoMonitoreo[];
+  alimentacion?: HospitalizacionAlimentacion[];
 }
 export interface CreateHospitalizacioneDto {
   id_historial_fk: string;
@@ -263,6 +319,8 @@ export interface CreateHospitalizacioneDto {
   motivo_ingreso: string;
   estado_actual?: EstadoHospitalizacion;
   costo_por_dia: number;
+  articulos_ingreso?: string;
+  medicion_post_operatoria?: string;
 }
 
 export interface UpdateHospitalizacioneDto {
@@ -270,6 +328,11 @@ export interface UpdateHospitalizacioneDto {
   fecha_alta?: string | null;
   costo_por_dia?: number;
   id_veterinario_responsable?: string;
+  articulos_ingreso?: string;
+  medicion_post_operatoria?: string;
+  condicion_egreso?: string;
+  diagnostico_egreso?: string;
+  instrucciones_alta?: string;
 }
 
 export type TurnoMonitoreo = 'Mañana' | 'Tarde' | 'Noche';
@@ -290,6 +353,14 @@ export interface MonitoreoDiario {
     apellidos: string;
     email: string;
   };
+  vomito_diarrea_convulsion?: string;
+  presion?: string;
+  spo2?: number;
+  tllc?: string;
+  mucosa?: string;
+  peso_kg?: number;
+  produccion_orina_ml?: number;
+  glasgow?: number;
 }
 
 export interface CreateMonitoreoDiarioDto {
@@ -300,6 +371,14 @@ export interface CreateMonitoreoDiarioDto {
   freq_cardiaca: number;
   freq_respiratoria: number;
   observaciones: string;
+  vomito_diarrea_convulsion?: string;
+  presion?: string;
+  spo2?: number;
+  tllc?: string;
+  mucosa?: string;
+  peso_kg?: number;
+  produccion_orina_ml?: number;
+  glasgow?: number;
 }
 
 export interface UpdateMonitoreoDiarioDto {
@@ -309,6 +388,117 @@ export interface UpdateMonitoreoDiarioDto {
   freq_respiratoria?: number;
   observaciones?: string;
   id_veterinario_fk?: string;
+  vomito_diarrea_convulsion?: string;
+  presion?: string;
+  spo2?: number;
+  tllc?: string;
+  mucosa?: string;
+  peso_kg?: number;
+  produccion_orina_ml?: number;
+  glasgow?: number;
+}
+
+export interface HospitalizacionTratamientoMonitoreo {
+  id: string;
+  id_hospitalizacion_fk: string;
+  medicamento?: string | null;
+  dosis?: string | null;
+  via?: string | null;
+  ml?: number | null;
+  hora?: string | null;
+  fluido?: string | null;
+  fluido_dosis?: string | null;
+  ml_hr?: number | null;
+  tiempo_inicio_fin?: string | null;
+  fecha?: string | null;
+}
+
+export interface HospitalizacionAlimentacion {
+  id: string;
+  id_hospitalizacion_fk: string;
+  dia?: string | null;
+  hora?: string | null;
+  tipo?: string | null;
+  cantidad?: string | null;
+}
+
+export interface Patologia {
+  id: string;
+  nombre: string;
+  codigoCie?: string | null;
+  descripcion?: string | null;
+}
+
+export interface HistorialPatologia {
+  id: string;
+  tipo: 'PRESUNTIVO' | 'DEFINITIVO';
+  patologia?: Patologia;
+}
+
+export interface SeguimientoClinico {
+  id: string;
+  id_historial_clinico_fk: string;
+  fecha: string;
+  hora: string;
+  estado: 'BORRADOR' | 'FINALIZADO';
+  motivo: string;
+  sintomas?: string | null;
+  observaciones?: string | null;
+  tratamiento?: string | null;
+  diagnostico_actual?: string | null;
+  recomendaciones?: string | null;
+  peso_kg?: number | null;
+  temperatura_c?: number | null;
+  frecuencia_cardiaca?: number | null;
+  frecuencia_respiratoria?: number | null;
+  mucosas?: string | null;
+  veterinario?: {
+    id: string;
+    nombres: string;
+    apellidos: string;
+  };
+  recetas?: any[];
+}
+
+export interface InformeClinico {
+  id: string;
+  id_mascota_fk: string;
+  id_historial_fk?: string | null;
+  id_seguimiento_fk?: string | null;
+  id_hospitalizacion_fk?: string | null;
+  tipo: 'ECOGRAFIA' | 'RADIOGRAFIA' | 'LABORATORIO' | 'CITOLOGIA' | 'HISTOPATOLOGIA' | 'ELECTROCARDIOGRAMA' | 'OTRO';
+  estado: 'BORRADOR' | 'FINALIZADO' | 'ENTREGADO';
+  titulo: string;
+  comentario_clinico?: string | null;
+  conclusion?: string | null;
+  recomendaciones?: string | null;
+  fecha: string;
+  veterinario?: {
+    id: string;
+    nombres: string;
+    apellidos: string;
+  };
+  imagenes?: string[];
+  pdf_generado?: string | null;
+  datos_estructurados?: Record<string, any> | null;
+}
+
+export interface ExamenSolicitado {
+  id: string;
+  id_historial_fk: string;
+  tipo: string;
+  estado: 'SOLICITADO' | 'REALIZADO' | 'CANCELADO';
+  fecha_solicitud: string;
+  fecha_realizacion?: string | null;
+  informe_id?: string | null;
+}
+
+export interface HospitalizacionArticulo {
+  id: string;
+  id_hospitalizacion_fk: string;
+  descripcion: string;
+  cantidad: number;
+  observacion?: string | null;
 }
 
 

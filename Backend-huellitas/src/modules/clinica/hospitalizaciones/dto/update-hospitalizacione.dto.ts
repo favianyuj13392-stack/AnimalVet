@@ -31,6 +31,14 @@ export class UpdateHospitalizacioneDto {
   @IsString()
   @IsOptional()
   instrucciones_alta?: string;
+
+  @IsString()
+  @IsOptional()
+  articulos_ingreso?: string;
+
+  @IsString()
+  @IsOptional()
+  medicion_post_operatoria?: string;
 }
 
 

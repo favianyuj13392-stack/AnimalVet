@@ -39,6 +39,6 @@ export function logServerStatus(config: MyServerConfigInterface) {
   console.log(`   🚀 Application is running`);
   console.log(`   🌍 Environment : ${color}${envName}${reset}`);
   console.log(`   📡 Port        : ${color}${config.port}${reset}`);
-  console.log(`   🔗 API Prefix  : ${color}/api/huellitas${reset}`);
+  console.log(`   🔗 API Prefix  : ${color}/api/animalvet${reset}`);
   console.log('=========================================');
 }

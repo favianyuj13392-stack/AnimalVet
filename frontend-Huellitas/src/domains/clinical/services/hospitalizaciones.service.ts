@@ -26,6 +26,23 @@ export const hospitalizacionesService = {
     const { data } = await api.get<Hospitalizacion[]>(`/hospitalizaciones/mascota/${idMascota}`);
     return data;
   },
+
+  addTratamiento: async (id: string, payload: any): Promise<any> => {
+    const { data } = await api.post(`/hospitalizaciones/${id}/tratamientos`, payload);
+    return data;
+  },
+  removeTratamiento: async (itemId: string): Promise<any> => {
+    const { data } = await api.delete(`/hospitalizaciones/tratamientos/${itemId}`);
+    return data;
+  },
+  addAlimentacion: async (id: string, payload: any): Promise<any> => {
+    const { data } = await api.post(`/hospitalizaciones/${id}/alimentacion`, payload);
+    return data;
+  },
+  removeAlimentacion: async (itemId: string): Promise<any> => {
+    const { data } = await api.delete(`/hospitalizaciones/alimentacion/${itemId}`);
+    return data;
+  },
 };
 export const hospitalizacionInsumosService = {
   create: async (payload: CreateHospitalizacionInsumoDto): Promise<{ mensaje: string }> => {

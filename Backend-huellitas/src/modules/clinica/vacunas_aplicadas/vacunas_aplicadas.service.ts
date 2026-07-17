@@ -11,6 +11,7 @@ import { CreateVacunasAplicadaDto } from './dto/create-vacunas_aplicada.dto';
 import { UpdateVacunasAplicadaDto } from './dto/update-vacunas_aplicada.dto';
 import { VacunasAplicadasResponseDto } from './dto/vacunas_aplicadas-response.dto';
 import { VacunaAplicada } from './entities/vacunas_aplicada.entity';
+import { Mascota } from '../../identidad/mascotas/entities/mascota.entity';
 
 @Injectable()
 export class VacunasAplicadasService {
@@ -75,19 +76,24 @@ export class VacunasAplicadasService {
     const guardada = await this.dataSource.transaction(async (manager) => {
       let fallbackPeso: number | null = null;
       let fallbackVeterinarioId: string = creatorId;
+      let mascotaId: string = '';
 
       if (createDto.id_historial_fk) {
-        const historial = await manager.getRepository(HistorialClinico).findOne({ where: { id: createDto.id_historial_fk } });
+        const historial = await manager.getRepository(HistorialClinico).findOne({
+          where: { id: createDto.id_historial_fk },
+          relations: ['expediente'],
+        });
         if (!historial) throw new NotFoundException('Historial clinico no encontrado.');
         if (historial.estado !== 'Abierto') {
           throw new BadRequestException('Solo se pueden registrar vacunas en historiales clinicos abiertos.');
         }
         fallbackPeso = historial.peso_kg ? Number(historial.peso_kg) : null;
         fallbackVeterinarioId = historial.id_veterinario_fk ?? creatorId;
+        mascotaId = historial.expediente?.id_mascota_fk || '';
       } else if (createDto.id_hospitalizacion_fk) {
         const hospitalizacion = await manager.getRepository(Hospitalizacion).findOne({
           where: { id: createDto.id_hospitalizacion_fk },
-          relations: ['historial'],
+          relations: ['historial', 'historial.expediente'],
         });
         if (!hospitalizacion) throw new NotFoundException('Hospitalizacion no encontrada.');
         if (hospitalizacion.estadoActual === 'Alta') {
@@ -95,8 +101,14 @@ export class VacunasAplicadasService {
         }
         fallbackPeso = hospitalizacion.historial?.peso_kg ? Number(hospitalizacion.historial.peso_kg) : null;
         fallbackVeterinarioId = hospitalizacion.id_veterinario_responsable ?? creatorId;
+        mascotaId = hospitalizacion.id_mascota_fk || hospitalizacion.historial?.expediente?.id_mascota_fk || '';
+      } else if (createDto.id_mascota_fk) {
+        const mascota = await manager.getRepository(Mascota).findOne({ where: { id: createDto.id_mascota_fk } });
+        if (!mascota) throw new NotFoundException('Mascota no encontrada.');
+        mascotaId = mascota.id;
+        fallbackPeso = null;
       } else {
-        throw new BadRequestException('Debe proporcionar obligatoriamente un id_historial_fk o un id_hospitalizacion_fk.');
+        throw new BadRequestException('Debe proporcionar obligatoriamente un id_historial_fk, un id_hospitalizacion_fk o un id_mascota_fk.');
       }
 
       const catalogoVacuna = await manager.getRepository(CatalogoVacuna).findOne({
@@ -126,6 +138,7 @@ export class VacunasAplicadasService {
       }
 
       const nuevaVacuna = manager.getRepository(VacunaAplicada).create({
+        id_mascota_fk: mascotaId || null,
         id_historial_fk: createDto.id_historial_fk ?? null,
         id_hospitalizacion_fk: createDto.id_hospitalizacion_fk ?? null,
         id_vacuna_fk: createDto.id_vacuna_fk,
@@ -208,6 +221,20 @@ export class VacunasAplicadasService {
     });
     return vacunas.map((v) => this.mapToResponse(v));
   }
+
+  async findByMascota(mascotaId: string): Promise<VacunasAplicadasResponseDto[]> {
+    const vacunas = await this.vacunaRepo.find({
+      where: [
+        { id_mascota_fk: mascotaId },
+        { historial: { expediente: { id_mascota_fk: mascotaId } } },
+        { hospitalizacion: { id_mascota_fk: mascotaId } },
+      ],
+      relations: ['vacuna', 'veterinario', 'historial', 'historial.expediente', 'hospitalizacion'],
+      order: { fechaAplicacion: 'DESC' },
+    });
+    return vacunas.map((v) => this.mapToResponse(v));
+  }
+
 
   async findOne(id: string): Promise<VacunasAplicadasResponseDto> {
     const entity = await this.vacunaRepo.findOne({

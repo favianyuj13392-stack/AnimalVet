@@ -12,7 +12,7 @@ export class ArchivoAdjunto extends BaseEntity {
   id_hospitalizacion_fk: string | null;
 
 
-  @Column({ name: 'url_archivo', type: 'varchar', length: 500 })
+  @Column({ name: 'url_archivo', type: 'text' })
   urlArchivo: string;
 
   @Column({ name: 'tipo_archivo', type: 'varchar', length: 50 })

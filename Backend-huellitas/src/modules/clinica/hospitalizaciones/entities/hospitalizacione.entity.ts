@@ -6,6 +6,9 @@ import { Usuario } from '../../../identidad/usuarios/entities/usuario.entity';
 import { VacunaAplicada } from '../../vacunas_aplicadas/entities/vacunas_aplicada.entity'; // 👈 IMPORT
 import { HospitalizacionInsumo } from './hospitalizacion-insumo.entity'; // 👈 IMPORT (Lo crearemos abajo)
 import { ArchivoAdjunto } from '../../archivos_adjuntos/entities/archivos_adjunto.entity'; // 👈 IMPORTAR
+import { HospitalizacionTratamientoMonitoreo } from './hospitalizacion-tratamiento-monitoreo.entity';
+import { HospitalizacionAlimentacion } from './hospitalizacion-alimentacion.entity';
+import { HospitalizacionArticulo } from './hospitalizacion-articulo.entity';
 @Entity('hospitalizaciones')
 export class Hospitalizacion extends BaseEntity {
   @Column({ name: 'id_historial_fk', type: 'uuid' })
@@ -40,6 +43,12 @@ export class Hospitalizacion extends BaseEntity {
 
   @Column({ name: 'instrucciones_alta', type: 'text', nullable: true })
   instruccionesAlta: string | null;
+
+  @Column({ name: 'articulos_ingreso', type: 'text', nullable: true })
+  articulosIngreso: string | null;
+
+  @Column({ name: 'medicion_post_operatoria', type: 'text', nullable: true })
+  medicionPostOperatoria: string | null;
 
   @Column({ name: 'created_by', type: 'uuid', nullable: false })
   createdBy: string;
@@ -77,4 +86,13 @@ export class Hospitalizacion extends BaseEntity {
 
   @OneToMany(() => ArchivoAdjunto, (archivo) => archivo.hospitalizacion)
   archivos: ArchivoAdjunto[];
+
+  @OneToMany(() => HospitalizacionTratamientoMonitoreo, (t) => t.hospitalizacion)
+  tratamientos: HospitalizacionTratamientoMonitoreo[];
+
+  @OneToMany(() => HospitalizacionAlimentacion, (a) => a.hospitalizacion)
+  alimentacion: HospitalizacionAlimentacion[];
+
+  @OneToMany(() => HospitalizacionArticulo, (art) => art.hospitalizacion, { cascade: true })
+  articulosIngresoList: HospitalizacionArticulo[];
 }

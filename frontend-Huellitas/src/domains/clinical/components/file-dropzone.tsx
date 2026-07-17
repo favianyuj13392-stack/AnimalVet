@@ -47,6 +47,18 @@ export function FileDropzone({
   const [previewing, setPreviewing] = useState<AttachedFile | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const prevFilesRef = useRef<string>("");
+
+  React.useEffect(() => {
+    const currentStr = JSON.stringify(files.map(f => ({ id: f.id, status: f.status, url: f.url })));
+    if (prevFilesRef.current !== currentStr) {
+      prevFilesRef.current = currentStr;
+      if (onFilesChanged) {
+        onFilesChanged(files);
+      }
+    }
+  }, [files, onFilesChanged]);
+
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return "0 Bytes";
     const k = 1024;
@@ -75,7 +87,6 @@ export function FileDropzone({
             ? { ...f, progress: 100, status: "success" as const, url }
             : f
         );
-        if (onFilesChanged) onFilesChanged(updated);
         return updated;
       });
       toast.success(`Archivo subido: ${file.name}`);
@@ -86,7 +97,6 @@ export function FileDropzone({
             ? { ...f, status: "error" as const }
             : f
         );
-        if (onFilesChanged) onFilesChanged(updated);
         return updated;
       });
       toast.error(`Error al subir ${file.name}`);
@@ -130,7 +140,6 @@ export function FileDropzone({
     if (newFiles.length > 0) {
       setFiles(prev => {
         const updated = [...prev, ...newFiles];
-        if (onFilesChanged) onFilesChanged(updated);
         return updated;
       });
       // Subir cada archivo a Cloudinary
@@ -166,7 +175,6 @@ export function FileDropzone({
     if (disabled) return;
     setFiles(prev => {
       const updated = prev.filter(f => f.id !== id);
-      if (onFilesChanged) onFilesChanged(updated);
       return updated;
     });
     toast.info("Archivo adjunto eliminado");
@@ -262,8 +270,31 @@ export function FileDropzone({
                 )}
 
                 {file.status === "success" && (
-                  <div className="flex items-center gap-1 mt-1 text-[9px] text-green-500 font-bold uppercase tracking-wider">
-                    <CheckCircle2 className="h-3 w-3 shrink-0" /> Subido a Cloudinary
+                  <div className="flex flex-col gap-1 mt-1">
+                    <div className="flex items-center gap-1 text-[9px] text-green-500 font-bold uppercase tracking-wider">
+                      <CheckCircle2 className="h-3 w-3 shrink-0" /> Subido a Cloudinary
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[9px] font-bold text-muted-foreground uppercase">Estado:</span>
+                      <select
+                        value={(file as any).estado_archivo || "Finalizado"}
+                        onChange={(e) => {
+                          const updated = files.map(f =>
+                            f.id === file.id ? { ...f, estado_archivo: e.target.value } : f
+                          );
+                          setFiles(updated);
+                          if (onFilesChanged) onFilesChanged(updated as any);
+                        }}
+                        disabled={disabled}
+                        className="text-[9px] font-bold bg-card border rounded px-1.5 py-0.5 rounded-lg outline-none cursor-pointer text-foreground"
+                      >
+                        <option value="Borrador">Borrador</option>
+                        <option value="Finalizado">Finalizado</option>
+                        <option value="Entregado">Entregado</option>
+                        <option value="Anulado">Anulado</option>
+                        <option value="Archivado">Archivado</option>
+                      </select>
+                    </div>
                   </div>
                 )}
 

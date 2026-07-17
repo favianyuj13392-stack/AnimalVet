@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState } from "react";
 import { FileViewer } from "@/shared/components/ui/file-viewer";
@@ -44,15 +44,19 @@ import { HistorialClinico } from "@/domains/clinical/clinical.types";
 const safeDateString = (dateVal: any): string => {
   if (!dateVal) return "—";
   try {
+    if (typeof dateVal === 'string' && dateVal.length === 10 && dateVal.includes('-')) {
+      const [year, month, day] = dateVal.split('-').map(Number);
+      const d = new Date(year, month - 1, day);
+      return d.toLocaleDateString("es-ES", { day: '2-digit', month: 'short', year: 'numeric' });
+    }
     const d = new Date(dateVal);
     if (isNaN(d.getTime())) return "—";
-    return d.toLocaleDateString("es-ES", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    const hasTime = typeof dateVal === 'string' ? dateVal.includes('T') || dateVal.includes(':') : true;
+    if (hasTime) {
+      return d.toLocaleDateString("es-ES", { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    } else {
+      return new Date(d.getTime() + d.getTimezoneOffset() * 60000).toLocaleDateString("es-ES", { day: '2-digit', month: 'short', year: 'numeric' });
+    }
   } catch (e) {
     return "—";
   }

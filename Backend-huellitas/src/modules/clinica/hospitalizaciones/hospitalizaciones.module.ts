@@ -10,13 +10,20 @@ import { HospitalizacionInsumosController } from './hospitalizacion-insumos.cont
 import { Producto } from '../../inventario/productos/entities/producto.entity';
 import { Servicio } from '../../core/servicios/entities/servicio.entity';
 
+import { HospitalizacionTratamientoMonitoreo } from './entities/hospitalizacion-tratamiento-monitoreo.entity';
+import { HospitalizacionAlimentacion } from './entities/hospitalizacion-alimentacion.entity';
+import { HospitalizacionArticulo } from './entities/hospitalizacion-articulo.entity';
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([
       Hospitalizacion,
       HospitalizacionInsumo, // 👈 Añadido
       Producto,              // 👈 Añadido
-      Servicio               // 👈 Añadido
+      Servicio,              // 👈 Añadido
+      HospitalizacionTratamientoMonitoreo,
+      HospitalizacionAlimentacion,
+      HospitalizacionArticulo,
     ])
   ],
   controllers: [

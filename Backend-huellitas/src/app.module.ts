@@ -14,6 +14,7 @@ import { RazasModule } from './modules/core/razas/razas.module';
 import { EspeciesModule } from './modules/core/especies/especies.module';
 import { ConfiguracionClinicaModule } from './modules/core/configuracion_clinica/configuracion_clinica.module';
 import { LogsSistemaModule } from './modules/core/logs_sistema/logs_sistema.module';
+import { PatologiasModule } from './modules/core/patologias/patologias.module';
 
 // Identidad
 import { UsuariosModule } from './modules/identidad/usuarios/usuarios.module';
@@ -31,6 +32,10 @@ import { HospitalizacionesModule } from './modules/clinica/hospitalizaciones/hos
 import { MonitoreoDiarioModule } from './modules/clinica/monitoreo_diario/monitoreo_diario.module';
 import { ExpedienteClinicoModule } from './modules/clinica/expediente_clinico/expediente_clinico.module';
 import { PlantillasPatologiaModule } from './modules/clinica/plantillas_patologia/plantillas_patologia.module';
+import { SeguimientosClinicosModule } from './modules/clinica/seguimientos_clinicos/seguimientos_clinicos.module';
+import { InformesClinicosModule } from './modules/clinica/informes_clinicos/informes_clinicos.module';
+import { ExamenesSolicitadosModule } from './modules/clinica/examenes_solicitados/examenes_solicitados.module';
+import { ZoosanitarioModule } from './modules/zoosanitario/zoosanitario.module';
 
 // Inventario
 import { ProductosModule } from './modules/inventario/productos/productos.module';
@@ -84,6 +89,11 @@ import { ReportesModule } from './modules/reportes/reportes.module';
     HospitalizacionesModule,
     MonitoreoDiarioModule,
     PlantillasPatologiaModule,
+    PatologiasModule,
+    SeguimientosClinicosModule,
+    InformesClinicosModule,
+    ExamenesSolicitadosModule,
+    ZoosanitarioModule,
 
     // Inventario
     ProductosModule,
