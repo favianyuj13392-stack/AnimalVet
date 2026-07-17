@@ -45,4 +45,9 @@ export const citasService = {
     const { data } = await api.get<any[]>("/citas/pendientes-cobro", { params });
     return data;
   },
+
+  createExpress: async (id_mascota_fk: string, id_servicio_fk: number): Promise<Cita> => {
+    const { data } = await api.post<Cita>('/citas/express', { id_mascota_fk, id_servicio_fk });
+    return data;
+  },
 };

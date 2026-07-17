@@ -240,8 +240,8 @@ export class TransaccionesCajaService {
     if (historial.estado === 'Facturado') {
       throw new BadRequestException('Este historial ya esta facturado.');
     }
-    if (historial.estado !== 'Cerrado') {
-      throw new BadRequestException('El historial debe estar Cerrado antes de enviarse a caja.');
+    if (historial.estado !== 'Cerrado' && historial.estado !== 'FINALIZADA') {
+      throw new BadRequestException('El historial debe estar Cerrado o Finalizado antes de enviarse a caja.');
     }
 
     const detalles: CobroClinicoLinea[] = [];

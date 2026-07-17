@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState } from "react";
 import {
@@ -250,6 +250,10 @@ export default function CajaAgendaPage() {
       toast.success("Estado de cita actualizado");
       setEstadoModal(null);
       setMotivo("");
+    },
+    onError: (err: any) => {
+      const msg = err.response?.data?.message || "No se pudo actualizar el estado de la cita.";
+      toast.error(Array.isArray(msg) ? msg[0] : msg);
     },
   });
 
@@ -737,8 +741,11 @@ export default function CajaAgendaPage() {
               Mascota: <span className="font-semibold text-foreground">{estadoModal?.cita?.mascota?.nombre ?? "—"}</span>
             </p>
             <div className="space-y-2">
-              <Label>Motivo {estadoModal?.nuevoEstado === "Cancelada" ? "(requerido)" : "(opcional)"}</Label>
-              <Textarea placeholder="Describe el motivo..." value={motivoCancelacion}
+              <Label className="flex justify-between">
+                <span>Motivo {estadoModal?.nuevoEstado === "Cancelada" ? "(requerido)" : "(opcional)"}</span>
+                <span className="text-[10px] text-muted-foreground">{motivoCancelacion.length}/100</span>
+              </Label>
+              <Textarea placeholder="Describe el motivo..." value={motivoCancelacion} maxLength={100}
                 onChange={(e) => setMotivo(e.target.value)} className="rounded-xl" rows={3} />
             </div>
           </div>
@@ -850,7 +857,7 @@ export default function CajaAgendaPage() {
                         </TableCell>
                         <TableCell className="text-right px-6">
                           <Button size="sm" className="rounded-xl h-8 text-xs gap-1.5"
-                            onClick={() => window.location.href = `/caja/pos?id_historial=${h.id_historial}`}>
+                            onClick={() => window.location.href = `/caja/pos?id_historial=${h.id}`}>
                             <BanknoteIcon className="h-3.5 w-3.5" /> Cobrar en POS
                           </Button>
                         </TableCell>
