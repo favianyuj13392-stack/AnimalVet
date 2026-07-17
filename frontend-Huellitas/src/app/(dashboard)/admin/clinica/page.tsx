@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
   Loader2, HeartPulse, FileText, Trash2, EyeOff,
-  Search, Calendar, AlertTriangle,
+  Search, Calendar, AlertTriangle, Settings,
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
 import { Card, CardContent, CardHeader } from '@/shared/components/ui/card';
@@ -16,6 +16,7 @@ import {
   Dialog, DialogContent, DialogFooter,
   DialogHeader, DialogTitle,
 } from '@/shared/components/ui/dialog';
+import Link from 'next/link';
 
 import { hospitalizacionesService } from '@/domains/clinical/services/hospitalizaciones.service';
 import { historialClinicoService } from '@/domains/clinical/services/historial-clinico.service';
@@ -95,9 +96,16 @@ export default function SupervisionClinicaPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Supervisión Clínica</h1>
-        <p className="text-muted-foreground mt-1">Auditoría y control de registros clínicos</p>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Supervisión Clínica</h1>
+          <p className="text-muted-foreground mt-1">Auditoría y control de registros clínicos</p>
+        </div>
+        <Button asChild className="rounded-xl font-bold">
+          <Link href="/admin/clinica/programa-sanitario">
+            <Settings className="h-4 w-4 mr-2" /> Programa Sanitario
+          </Link>
+        </Button>
       </div>
 
       {/* ── Stats ── */}

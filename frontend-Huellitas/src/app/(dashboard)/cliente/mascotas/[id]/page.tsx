@@ -19,6 +19,8 @@ import { MedicalIdCard } from '@/domains/pets/components/medical-id-card'
 import { VaccinesTable } from '@/domains/pets/components/vaccines-table'
 import { QrEmergencyModal } from '@/domains/pets/components/qr-emergency-modal'
 import { PetLostStatus } from '@/domains/pets/components/pet-lost-status'
+import { ZoosanitarioPanel } from '@/domains/clinical/components/ZoosanitarioPanel'
+import { zoosanitarioService } from '@/domains/clinical/services/zoosanitario.service'
 import { useQuery } from '@tanstack/react-query'
 import { mascotasService } from '@/domains/pets/services/mascotas.service'
 import { speciesService } from '@/domains/pets/services/especies.service'
@@ -55,6 +57,12 @@ export default function PerfilMascotaPage() {
   const { data: expedienteData, isLoading: loadingHistorial } = useQuery({
     queryKey: ['historial-mi-mascota', id],
     queryFn: () => historialClinicoService.getByMiMascota(id as string),
+    enabled: !!id,
+  })
+
+  const { data: zoosanitarioData } = useQuery({
+    queryKey: ['zoosanitario-mascota', id],
+    queryFn: () => zoosanitarioService.getTarjetaControl(id as string),
     enabled: !!id,
   })
 
@@ -254,6 +262,21 @@ export default function PerfilMascotaPage() {
         </div>
       )}
 
+      {/* ─── ALERTA ZOOSANITARIO PENDIENTE ─── */}
+      {zoosanitarioData?.alertas?.length > 0 && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800 p-4 flex items-start gap-3">
+          <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-semibold text-amber-700 dark:text-amber-400">
+              Controles sanitarios pendientes para {mascotaFormatted.nombre}
+            </p>
+            <p className="text-xs text-amber-600/80 dark:text-amber-400/70 mt-0.5">
+              Hay {zoosanitarioData.alertas.length} vacunas o desparasitaciones pendientes o por vencer. Ingrese a la pestaña de "Zoosanitario" para ver los detalles.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* ─── DETALLE ─── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
@@ -265,7 +288,7 @@ export default function PerfilMascotaPage() {
           <Tabs defaultValue="historial" className="w-full">
             <TabsList className="grid w-full grid-cols-5 rounded-xl bg-muted/50 p-1 mb-5 border border-border/40 h-10">
               <TabsTrigger value="historial"   className="rounded-lg text-xs font-semibold">Historial</TabsTrigger>
-              <TabsTrigger value="vacunas"     className="rounded-lg text-xs font-semibold">Vacunas</TabsTrigger>
+              <TabsTrigger value="zoosanitario" className="rounded-lg text-xs font-semibold">Zoosanitario</TabsTrigger>
               <TabsTrigger value="recetas"     className="rounded-lg text-xs font-semibold">Recetas</TabsTrigger>
               <TabsTrigger value="archivos"    className="rounded-lg text-xs font-semibold">Archivos</TabsTrigger>
               <TabsTrigger value="qr"          className="rounded-lg text-xs font-semibold">QR</TabsTrigger>
@@ -327,20 +350,9 @@ export default function PerfilMascotaPage() {
               </Card>
             </TabsContent>
 
-            {/* ── VACUNAS ── */}
-            <TabsContent value="vacunas" className="outline-none">
-              {loadingHistorial ? (
-                <LoadingCard label="Cargando vacunas..." />
-              ) : vacunasReales.length === 0 ? (
-                <Card className="rounded-xl border-border/50 shadow-sm">
-                  <CardContent className="pt-6">
-                    <EmptyState icon={Syringe} title="Sin vacunas registradas"
-                      desc="Las vacunas aplicadas en consulta aparecerán aqui." />
-                  </CardContent>
-                </Card>
-              ) : (
-                <VaccinesTable vacunas={vacunasReales} onPrint={() => window.print()} />
-              )}
+            {/* ── ZOOSANITARIO ── */}
+            <TabsContent value="zoosanitario" className="outline-none">
+              <ZoosanitarioPanel mascotaId={id as string} readOnly={true} />
             </TabsContent>
 
             {/* ── RECETAS ── */}
