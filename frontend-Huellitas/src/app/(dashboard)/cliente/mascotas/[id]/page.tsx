@@ -31,7 +31,12 @@ import { hospitalizacionesService } from '@/domains/clinical/services/hospitaliz
 import { Mascota, Especie, Raza } from '@/domains/pets/pets.types'
 import { HistorialClinico } from '@/domains/clinical/clinical.types'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api/animalvet'
+let rawApiBase = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api/animalvet';
+if (rawApiBase && !rawApiBase.endsWith('/api/animalvet') && !rawApiBase.endsWith('/api/animalvet/')) {
+  if (rawApiBase.endsWith('/')) rawApiBase = rawApiBase.slice(0, -1);
+  rawApiBase = `${rawApiBase}/api/animalvet`;
+}
+const API_BASE = rawApiBase;
 
 export default function PerfilMascotaPage() {
   const { id } = useParams()

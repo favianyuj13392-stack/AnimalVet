@@ -1,4 +1,4 @@
-﻿import { create } from 'zustand';
+import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 // 1. Así es exactamente como viene del backend
@@ -41,7 +41,11 @@ export const useAuthStore = create<AuthState>()(
       logout: () => {
         // Invalidar el token en el servidor con fetch nativo (evita circular dependency con axios)
         const token = useAuthStore.getState().access_token;
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/animalvet';
+        let apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/animalvet';
+        if (apiUrl && !apiUrl.endsWith('/api/animalvet') && !apiUrl.endsWith('/api/animalvet/')) {
+          if (apiUrl.endsWith('/')) apiUrl = apiUrl.slice(0, -1);
+          apiUrl = `${apiUrl}/api/animalvet`;
+        }
         if (token) {
           fetch(`${apiUrl}/auth/logout`, {
             method: 'POST',

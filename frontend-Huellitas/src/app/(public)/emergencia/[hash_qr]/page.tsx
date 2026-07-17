@@ -1,7 +1,12 @@
 import type { Metadata } from 'next'
 import FichaEmergenciaCliente from './ficha-emergencia'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api/animalvet'
+let rawApiBase = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api/animalvet';
+if (rawApiBase && !rawApiBase.endsWith('/api/animalvet') && !rawApiBase.endsWith('/api/animalvet/')) {
+  if (rawApiBase.endsWith('/')) rawApiBase = rawApiBase.slice(0, -1);
+  rawApiBase = `${rawApiBase}/api/animalvet`;
+}
+const API_BASE = rawApiBase;
 const SITE_URL = 'https://animalvet.vercel.app'
 
 interface Props {

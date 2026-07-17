@@ -1,10 +1,16 @@
-﻿import axios from 'axios';
+import axios from 'axios';
 import { toast } from 'sonner';
 import {useAuthStore} from "@/shared/store/useAuthStore"; // Para acceder al token desde Zustand si es necesario
 
 const token = useAuthStore.getState().access_token; // Obtener el token directamente del store
+let rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/animalvet';
+if (rawApiUrl && !rawApiUrl.endsWith('/api/animalvet') && !rawApiUrl.endsWith('/api/animalvet/')) {
+  if (rawApiUrl.endsWith('/')) rawApiUrl = rawApiUrl.slice(0, -1);
+  rawApiUrl = `${rawApiUrl}/api/animalvet`;
+}
+
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/animalvet',
+  baseURL: rawApiUrl,
   headers: {
     'Content-Type': 'application/json',
   },
