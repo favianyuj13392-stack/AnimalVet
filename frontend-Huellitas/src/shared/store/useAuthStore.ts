@@ -42,6 +42,9 @@ export const useAuthStore = create<AuthState>()(
         // Invalidar el token en el servidor con fetch nativo (evita circular dependency con axios)
         const token = useAuthStore.getState().access_token;
         let apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/animalvet';
+        if (apiUrl.includes('/api/huellitas')) {
+          apiUrl = apiUrl.replace('/api/huellitas', '/api/animalvet');
+        }
         if (apiUrl && !apiUrl.endsWith('/api/animalvet') && !apiUrl.endsWith('/api/animalvet/')) {
           if (apiUrl.endsWith('/')) apiUrl = apiUrl.slice(0, -1);
           apiUrl = `${apiUrl}/api/animalvet`;

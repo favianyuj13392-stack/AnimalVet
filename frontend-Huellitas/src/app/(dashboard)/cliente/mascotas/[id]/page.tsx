@@ -32,6 +32,9 @@ import { Mascota, Especie, Raza } from '@/domains/pets/pets.types'
 import { HistorialClinico } from '@/domains/clinical/clinical.types'
 
 let rawApiBase = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api/animalvet';
+if (rawApiBase.includes('/api/huellitas')) {
+  rawApiBase = rawApiBase.replace('/api/huellitas', '/api/animalvet');
+}
 if (rawApiBase && !rawApiBase.endsWith('/api/animalvet') && !rawApiBase.endsWith('/api/animalvet/')) {
   if (rawApiBase.endsWith('/')) rawApiBase = rawApiBase.slice(0, -1);
   rawApiBase = `${rawApiBase}/api/animalvet`;
