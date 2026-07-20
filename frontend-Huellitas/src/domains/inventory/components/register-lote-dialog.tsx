@@ -151,7 +151,7 @@ export function RegisterLoteDialog({ productos }: RegisterLoteDialogProps) {
                 type="date"
                 value={fechaVencimiento}
                 onChange={(e) => { setFechaVencimiento(e.target.value); setErrors((p) => ({ ...p, fechaVencimiento: undefined })); }}
-                min={new Date().toISOString().split("T")[0]}
+                min={new Date().toLocaleDateString("en-CA", { timeZone: "America/La_Paz" })}
                 className={`rounded-lg h-10 ${errors.fechaVencimiento ? "border-destructive" : ""}`}
               />
               {errors.fechaVencimiento && <p className="text-xs text-destructive">{errors.fechaVencimiento}</p>}

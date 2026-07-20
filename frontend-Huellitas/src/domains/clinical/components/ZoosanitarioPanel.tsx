@@ -81,7 +81,7 @@ export function ZoosanitarioPanel({ mascotaId, readOnly = false }: ZoosanitarioP
 
   // Form States
   const [idVacunaFk, setIdVacunaFk] = useState("");
-  const [fecha, setFecha] = useState(new Date().toISOString().split("T")[0]);
+  const [fecha, setFecha] = useState(new Date().toLocaleDateString("en-CA", { timeZone: "America/La_Paz" }));
   const [fechaProxima, setFechaProxima] = useState("");
   const [pesoKg, setPesoKg] = useState("");
   const [loteVacuna, setLoteVacuna] = useState("");
@@ -124,7 +124,7 @@ export function ZoosanitarioPanel({ mascotaId, readOnly = false }: ZoosanitarioP
     else if (tab === "tratamientos") type = "tratamiento";
 
     setDialogType(type);
-    setFecha(new Date().toISOString().split("T")[0]);
+    setFecha(new Date().toLocaleDateString("en-CA", { timeZone: "America/La_Paz" }));
     setFechaProxima("");
     setPesoKg("");
     setLoteVacuna("");
