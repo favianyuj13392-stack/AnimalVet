@@ -91,8 +91,13 @@ export function UrgenciaModal({ open, onOpenChange }: UrgenciaModalProps) {
         id_veterinario: user?.rol?.id === 2 ? user.id.toString() : "",
       });
 
-      // Redirigir directamente a la consulta médica activa
-      router.push(response.redirectUrl);
+      // Redirigir directamente a la consulta médica activa si es Médico o Administrador
+      const esVetOrAdmin = user?.rol?.id === 1 || user?.rol?.id === 2;
+      if (esVetOrAdmin) {
+        router.push(response.redirectUrl);
+      } else {
+        router.refresh();
+      }
     } catch (error: any) {
       toast.error(error?.response?.data?.message || "Ocurrió un error al registrar la urgencia");
     } finally {
