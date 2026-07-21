@@ -53,7 +53,7 @@ export const servicioSchema = z.object({
   descripcion: z.string().max(500).optional(),
   precio: z.number().min(0, "El precio no puede ser negativo"),
   duracion_minutos: z.number().int().positive("La duración debe ser positiva"),
-  requiere_veterinario: z.boolean(),
+  requiereVeterinario: z.boolean(),
 });
 
 export type ServicioFormData = z.infer<typeof servicioSchema>;

@@ -21,11 +21,11 @@ import { ImageUploader } from "@/shared/components/ui/image-uploader";
 
 export function ServicesManager() {
   const [servicios, setServicios] = useState<Servicio[]>([
-    { id: 1, nombre: "Consulta General", descripcion: "Control rutinario y chequeo general de signos vitales.", precio: 100, duracion_minutos: 30, requiere_veterinario: true },
-    { id: 2, nombre: "Consulta Emergencia", descripcion: "Atención urgente ante traumatismos o problemas agudos.", precio: 180, duracion_minutos: 30, requiere_veterinario: true },
-    { id: 3, nombre: "Peluquería y Baño", descripcion: "Corte estético, baño medicado o limpieza sanitaria.", precio: 80, duracion_minutos: 60, requiere_veterinario: false },
-    { id: 4, nombre: "Hospitalización/Día", descripcion: "Cuidado clínico intensivo y canil asignado.", precio: 150, duracion_minutos: 1440, requiere_veterinario: true },
-    { id: 5, nombre: "Vacunación", descripcion: "Aplicación de inmunizaciones y control de vacunas.", precio: 60, duracion_minutos: 15, requiere_veterinario: true },
+    { id: 1, nombre: "Consulta General", descripcion: "Control rutinario y chequeo general de signos vitales.", precio: 100, duracion_minutos: 30, requiereVeterinario: true },
+    { id: 2, nombre: "Consulta Emergencia", descripcion: "Atención urgente ante traumatismos o problemas agudos.", precio: 180, duracion_minutos: 30, requiereVeterinario: true },
+    { id: 3, nombre: "Peluquería y Baño", descripcion: "Corte estético, baño medicado o limpieza sanitaria.", precio: 80, duracion_minutos: 60, requiereVeterinario: false },
+    { id: 4, nombre: "Hospitalización/Día", descripcion: "Cuidado clínico intensivo y canil asignado.", precio: 150, duracion_minutos: 1440, requiereVeterinario: true },
+    { id: 5, nombre: "Vacunación", descripcion: "Aplicación de inmunizaciones y control de vacunas.", precio: 60, duracion_minutos: 15, requiereVeterinario: true },
   ]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -35,10 +35,10 @@ export function ServicesManager() {
 
   const { register, handleSubmit, reset, setValue, watch, formState: { errors, isSubmitting } } = useForm<ServicioFormData>({
     resolver: zodResolver(servicioSchema),
-    defaultValues: { nombre: "", descripcion: "", precio: 0, duracion_minutos: 30, requiere_veterinario: true }
+    defaultValues: { nombre: "", descripcion: "", precio: 0, duracion_minutos: 30, requiereVeterinario: true }
   });
 
-  const requiereVet = watch("requiere_veterinario");
+  const requiereVet = watch("requiereVeterinario");
 
   const handleEditClick = (servicio: Servicio) => {
     setEditingId(servicio.id);
@@ -47,7 +47,7 @@ export function ServicesManager() {
       descripcion: servicio.descripcion || "",
       precio: Number(servicio.precio),
       duracion_minutos: Number(servicio.duracion_minutos),
-      requiere_veterinario: servicio.requiere_veterinario
+      requiereVeterinario: servicio.requiereVeterinario
     });
     setImagenUrl((servicio as any).imagen_url || "");
     setIsModalOpen(true);
@@ -74,7 +74,7 @@ export function ServicesManager() {
     setIsModalOpen(false);
     setEditingId(null);
     setImagenUrl("");
-    reset({ nombre: "", descripcion: "", precio: 0, duracion_minutos: 30, requiere_veterinario: true });
+    reset({ nombre: "", descripcion: "", precio: 0, duracion_minutos: 30, requiereVeterinario: true });
   };
 
   const filteredServicios = servicios.filter((s) =>
@@ -186,7 +186,7 @@ export function ServicesManager() {
                 </div>
                 <Switch
                   checked={requiereVet}
-                  onCheckedChange={(val) => setValue("requiere_veterinario", val)}
+                  onCheckedChange={(val) => setValue("requiereVeterinario", val)}
                 />
               </div>
 
@@ -219,8 +219,8 @@ export function ServicesManager() {
                 <div className="rounded-xl bg-primary/10 p-2.5 text-primary group-hover:scale-110 transition-transform">
                   <Stethoscope className="h-5 w-5" />
                 </div>
-                <Badge variant={serv.requiere_veterinario ? "default" : "secondary"} className="rounded-lg text-xs font-semibold">
-                  {serv.requiere_veterinario ? "Clínico (Vet)" : "Estética / Otros"}
+                <Badge variant={serv.requiereVeterinario ? "default" : "secondary"} className="rounded-lg text-xs font-semibold">
+                  {serv.requiereVeterinario ? "Clínico (Vet)" : "Estética / Otros"}
                 </Badge>
               </div>
               <CardTitle className="text-lg font-bold mt-3">{serv.nombre}</CardTitle>
@@ -293,8 +293,8 @@ export function ServicesManager() {
                         <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5 text-primary" /> {serv.duracion_minutos} min</span>
                       </TableCell>
                       <TableCell className="px-6 py-4">
-                        <Badge variant={serv.requiere_veterinario ? "default" : "secondary"} className="rounded-lg text-xs font-medium">
-                          {serv.requiere_veterinario ? "Requiere Veterinario" : "General"}
+                        <Badge variant={serv.requiereVeterinario ? "default" : "secondary"} className="rounded-lg text-xs font-medium">
+                          {serv.requiereVeterinario ? "Requiere Veterinario" : "General"}
                         </Badge>
                       </TableCell>
                       <TableCell className="px-6 py-4 font-mono text-sm font-semibold text-card-foreground">

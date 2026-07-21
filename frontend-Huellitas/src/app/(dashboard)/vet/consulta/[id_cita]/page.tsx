@@ -30,6 +30,7 @@ import { vaccinesCatalogService } from "@/domains/clinical/services/vaccines-cat
 import { productosService } from "@/domains/inventory/services/productos.service";
 import { lotesService } from "@/domains/billing/services/lotes.service";
 import { patologiasService } from "@/domains/clinical/services/patologias.service";
+import { mascotasService } from "@/domains/pets/services/mascotas.service";
 
 // Components
 import { TriageForm } from "@/domains/clinical/components/triage-form";
