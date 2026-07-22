@@ -89,22 +89,31 @@ export class ProductosService {
       .getManyAndCount();
 
     const envaseRepo = this.productoRepo.manager.getRepository(EnvaseAbierto);
-    const res: any[] = [];
-    for (const p of productos) {
+    const productosIds = productos.filter(p => p.tipoProducto === 'Multidosis').map(p => p.id);
+
+    let envasesMap: Record<number, number> = {};
+    if (productosIds.length > 0) {
+      const envases = await envaseRepo.createQueryBuilder('envase')
+        .where('envase.idProductoFk IN (:...ids)', { ids: productosIds })
+        .andWhere('envase.estado = :estado', { estado: 'Abierto' })
+        .getMany();
+
+      envasesMap = envases.reduce((acc, envase) => {
+        acc[envase.idProductoFk] = Number(envase.volumenRestante);
+        return acc;
+      }, {} as Record<number, number>);
+    }
+
+    const res: any[] = productos.map(p => {
       let volumenRestanteOpen: number | null = null;
-      if (p.tipoProducto === 'Multidosis') {
-        const envase = await envaseRepo.findOne({
-          where: { idProductoFk: p.id, estado: 'Abierto' }
-        });
-        if (envase) {
-          volumenRestanteOpen = Number(envase.volumenRestante);
-        }
+      if (p.tipoProducto === 'Multidosis' && envasesMap[p.id] !== undefined) {
+        volumenRestanteOpen = envasesMap[p.id];
       }
-      res.push({
+      return {
         ...p,
         volumenRestanteOpen
-      });
-    }
+      };
+    });
 
     return {
       data: res,

@@ -88,6 +88,10 @@ export default function InventarioPage() {
   const [busquedaKardex, setBusquedaKardex]   = useState("");
   const [busquedaLote, setBusquedaLote]       = useState("");
   const [page, setPage]                       = useState(1);
+
+  React.useEffect(() => {
+    setPage(1);
+  }, [busqueda, filtroCategoria]);
   const limit = 10;
 
   // ── Queries ──────────────────────────────────────────────────────────────
