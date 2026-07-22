@@ -70,6 +70,50 @@ export class ProductosService {
     return res;
   }
 
+  async findAllPaginated(page: number, limit: number, buscar: string, categoria: string): Promise<any> {
+    const qb = this.productoRepo.createQueryBuilder('producto')
+      .leftJoinAndSelect('producto.categoria', 'categoria')
+      .orderBy('producto.nombre', 'ASC');
+
+    if (buscar) {
+      qb.andWhere('(LOWER(producto.nombre) LIKE LOWER(:buscar) OR LOWER(producto.id) LIKE LOWER(:buscar))', { buscar: `%${buscar}%` });
+    }
+
+    if (categoria && categoria !== 'todas') {
+      qb.andWhere('categoria.nombre = :categoria', { categoria });
+    }
+
+    const [productos, total] = await qb
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    const envaseRepo = this.productoRepo.manager.getRepository(EnvaseAbierto);
+    const res: any[] = [];
+    for (const p of productos) {
+      let volumenRestanteOpen: number | null = null;
+      if (p.tipoProducto === 'Multidosis') {
+        const envase = await envaseRepo.findOne({
+          where: { idProductoFk: p.id, estado: 'Abierto' }
+        });
+        if (envase) {
+          volumenRestanteOpen = Number(envase.volumenRestante);
+        }
+      }
+      res.push({
+        ...p,
+        volumenRestanteOpen
+      });
+    }
+
+    return {
+      data: res,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit)
+    };
+  }
+
   async findStockCritico(): Promise<Producto[]> {
     return this.productoRepo
       .createQueryBuilder('producto')
