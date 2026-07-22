@@ -95,7 +95,7 @@ export function PrescriptionBuilder({
     }
 
     onAddMedicamento({
-      id: crypto.randomUUID(),
+      id: Math.random().toString(),
       id_producto: med.id,
       medicamento_texto: med.nombre,
       dosis: dosisCalculada,
@@ -135,7 +135,7 @@ export function PrescriptionBuilder({
     }
 
     onAddMedicamento({
-      id: crypto.randomUUID(),
+      id: Math.random().toString(),
       id_producto: med.id,
       medicamento_texto: med.nombre,
       dosis: dosisCalculada,
@@ -178,7 +178,7 @@ export function PrescriptionBuilder({
       return;
     }
     onAddMedicamento({
-      id: crypto.randomUUID(),
+      id: Math.random().toString(),
       id_producto: selectedMed.id,
       medicamento_texto: selectedMed.nombre,
       dosis,
@@ -335,7 +335,7 @@ export function PrescriptionBuilder({
                       </div>
                       {m.tipoProducto === 'Multidosis' && (
                         <p className="text-[9px] text-primary/80 font-medium">
-                          {m.volumenRestanteOpen !== null && m.volumenRestanteOpen !== undefined && m.volumenRestanteOpen > 0
+                          {m.volumenRestanteOpen !== null && m.volumenRestanteOpen > 0
                             ? `Abierto: ${m.volumenRestanteOpen} / ${m.contenidoDosisPorEnvase} ${m.unidadDosis || 'ml'}`
                             : `Nuevo envase: ${m.contenidoDosisPorEnvase} ${m.unidadDosis || 'ml'}`
                           }
