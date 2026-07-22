@@ -81,7 +81,7 @@ export function ZoosanitarioPanel({ mascotaId, readOnly = false }: ZoosanitarioP
 
   // Form States
   const [idVacunaFk, setIdVacunaFk] = useState("");
-  const [fecha, setFecha] = useState(new Date().toISOString().split("T")[0]);
+  const [fecha, setFecha] = useState(new Date().toLocaleDateString("en-CA", { timeZone: "America/La_Paz" }));
   const [fechaProxima, setFechaProxima] = useState("");
   const [pesoKg, setPesoKg] = useState("");
   const [loteVacuna, setLoteVacuna] = useState("");
@@ -124,7 +124,7 @@ export function ZoosanitarioPanel({ mascotaId, readOnly = false }: ZoosanitarioP
     else if (tab === "tratamientos") type = "tratamiento";
 
     setDialogType(type);
-    setFecha(new Date().toISOString().split("T")[0]);
+    setFecha(new Date().toLocaleDateString("en-CA", { timeZone: "America/La_Paz" }));
     setFechaProxima("");
     setPesoKg("");
     setLoteVacuna("");
@@ -148,10 +148,10 @@ export function ZoosanitarioPanel({ mascotaId, readOnly = false }: ZoosanitarioP
           id_vacuna_fk: Number(idVacunaFk),
           id_mascota_fk: mascotaId,
           fecha_aplicacion: fecha,
-          fecha_proxima_dosis: fechaProxima || '',
-          peso_mascota_kg: pesoKg ? Number(pesoKg) : 0,
-          lote_vacuna: loteVacuna || '',
-        } as any);
+          fecha_proxima_dosis: fechaProxima || undefined,
+          peso_mascota_kg: pesoKg ? Number(pesoKg) : undefined,
+          lote_vacuna: loteVacuna || undefined,
+        });
         toast.success("Vacuna registrada exitosamente");
       } else if (dialogType === "desparasitacion") {
         if (!productoUtilizado) return toast.error("El nombre del producto es obligatorio");

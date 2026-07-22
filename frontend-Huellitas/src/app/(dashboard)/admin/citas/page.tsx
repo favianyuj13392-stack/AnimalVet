@@ -492,7 +492,7 @@ fecha_hora_inicio: `${form.fecha}T${form.hora}:00`,      origen_reserva: 'RECEPC
                     className={`flex items-center gap-4 p-4 rounded-xl border shadow-sm transition-all duration-200 hover:shadow-md hover:scale-[1.005] cursor-pointer ${style.border} ${style.bg} ${opacityClass}`}
                     onClick={() => {
                       setCitaSeleccionada(cita)
-                      setNuevoEstado(cita.estado || '')
+                      setNuevoEstado(cita.estado)
                       setMotivoCancelacion(cita.motivo_cancelacion || '')
                       setDialogCita(true)
                     }}
@@ -536,8 +536,8 @@ fecha_hora_inicio: `${form.fecha}T${form.hora}:00`,      origen_reserva: 'RECEPC
                     </div>
                     
                     <div className="flex flex-col items-end gap-1.5">
-                      <Badge className={`rounded-full px-3 py-1 font-semibold text-xs border ${estadoColor[cita.estado as keyof typeof estadoColor] || 'bg-gray-100'}`}>
-                        {estadoLabel[cita.estado as keyof typeof estadoLabel] || cita.estado}
+                      <Badge className={`rounded-full px-3 py-1 font-semibold text-xs border ${estadoColor[cita.estado] || 'bg-gray-100'}`}>
+                        {estadoLabel[cita.estado] || cita.estado}
                       </Badge>
                     </div>
                   </div>
@@ -580,7 +580,7 @@ fecha_hora_inicio: `${form.fecha}T${form.hora}:00`,      origen_reserva: 'RECEPC
                 </div>
                 <div>
                   <span className="text-muted-foreground block text-xs">Estado de Cita</span>
-                  <Badge className={`mt-1 ${estadoColor[citaSeleccionada.estado as keyof typeof estadoColor] || 'bg-gray-100'}`}>{estadoLabel[citaSeleccionada.estado as keyof typeof estadoLabel] || citaSeleccionada.estado}</Badge>
+                  <Badge className={`mt-1 ${estadoColor[citaSeleccionada.estado] || 'bg-gray-100'}`}>{estadoLabel[citaSeleccionada.estado] || citaSeleccionada.estado}</Badge>
                 </div>
               </div>
 
@@ -608,8 +608,8 @@ fecha_hora_inicio: `${form.fecha}T${form.hora}:00`,      origen_reserva: 'RECEPC
                       </SelectTrigger>
                       <SelectContent className="rounded-xl">
                         {citaSeleccionada.estado !== 'Cancelada' && citaSeleccionada.estado !== 'No_Asistio' && (
-                          <SelectItem value={citaSeleccionada.estado || ''} disabled>
-                            {estadoLabel[citaSeleccionada.estado as keyof typeof estadoLabel] || citaSeleccionada.estado} (Actual)
+                          <SelectItem value={citaSeleccionada.estado} disabled>
+                            {estadoLabel[citaSeleccionada.estado] || citaSeleccionada.estado} (Actual)
                           </SelectItem>
                         )}
                         <SelectItem value="Cancelada">Cancelada</SelectItem>
