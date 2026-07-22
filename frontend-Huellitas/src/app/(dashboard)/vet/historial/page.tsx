@@ -94,7 +94,7 @@ export default function HistorialPage() {
     const coincideSintomas = h.sintomas?.toLowerCase().includes(term);
     const coincideBusqueda = term === "" || coincideMascota || coincideVet || coincideDiagnostico || coincideMotivo || coincideSintomas;
 
-    const coincideEstado = filtroEstado === "todos" || h.estado === filtroEstado;
+    const coincideEstado = filtroEstado === "todos" || (h as any).estado === filtroEstado;
 
     const coincideMes = (() => {
       if (filtroMes === "todos") return true;

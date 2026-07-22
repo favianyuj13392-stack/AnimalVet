@@ -148,10 +148,10 @@ export function ZoosanitarioPanel({ mascotaId, readOnly = false }: ZoosanitarioP
           id_vacuna_fk: Number(idVacunaFk),
           id_mascota_fk: mascotaId,
           fecha_aplicacion: fecha,
-          fecha_proxima_dosis: fechaProxima || undefined,
-          peso_mascota_kg: pesoKg ? Number(pesoKg) : undefined,
-          lote_vacuna: loteVacuna || undefined,
-        });
+          fecha_proxima_dosis: fechaProxima || '',
+          peso_mascota_kg: pesoKg ? Number(pesoKg) : 0,
+          lote_vacuna: loteVacuna || '',
+        } as any);
         toast.success("Vacuna registrada exitosamente");
       } else if (dialogType === "desparasitacion") {
         if (!productoUtilizado) return toast.error("El nombre del producto es obligatorio");

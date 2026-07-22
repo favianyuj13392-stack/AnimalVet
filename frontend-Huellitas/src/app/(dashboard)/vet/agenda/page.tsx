@@ -61,7 +61,7 @@ export default function AgendaDelDiaPage() {
   const total      = citasHoy.length;
   const completadas = citasHoy.filter(c => c.estado === "Completada").length;
   const enCurso    = citasHoy.filter(c => c.estado === "En_Curso").length;
-  const pendientes = citasHoy.filter(c => ["Pendiente", "Confirmada"].includes(c.estado)).length;
+  const pendientes = citasHoy.filter(c => ["Pendiente", "Confirmada"].includes(c.estado || '')).length;
   const progreso   = total > 0 ? Math.round((completadas / total) * 100) : 0;
 
   const handleAtender = async (citaId: string, estado: string) => {
