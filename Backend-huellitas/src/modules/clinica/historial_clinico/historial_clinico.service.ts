@@ -503,11 +503,7 @@ export class HistorialClinicoService {
 
     } catch (err: any) {
       // SI ALGO FALLA (ej. error de tipado o base de datos), REVERTIMOS TODO
-      try {
-        await queryRunner.rollbackTransaction();
-      } catch (rollbackErr: any) {
-        this.logger.error(`Error al revertir la transacción: ${rollbackErr.message}`, rollbackErr.stack);
-      }
+      await queryRunner.rollbackTransaction();
       this.logger.error(`Error en transacción finalizar consulta: ${err?.message}`, err?.stack);
       throw new BadRequestException(`No se pudo guardar la consulta. Verifica los datos enviados. Detalle: ${err.message}`);
     } finally {

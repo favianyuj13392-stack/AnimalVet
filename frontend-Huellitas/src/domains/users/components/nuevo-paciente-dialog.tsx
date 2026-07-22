@@ -228,7 +228,7 @@ export function NuevoPacienteDialog({ open, onOpenChange, onSuccess }: Props) {
             className={`rounded-xl h-10 ${mascotaErrors.fecha_nacimiento ? "border-destructive" : ""}`}
             type="date"
             value={mascotaForm.fecha_nacimiento}
-            max={new Date().toLocaleDateString("en-CA", { timeZone: "America/La_Paz" })}
+            max={new Date().toISOString().split("T")[0]}
             onChange={(e) => setMascotaForm({ ...mascotaForm, fecha_nacimiento: e.target.value })}
           />
           {mascotaErrors.fecha_nacimiento && <p className="text-xs text-destructive">{mascotaErrors.fecha_nacimiento}</p>}

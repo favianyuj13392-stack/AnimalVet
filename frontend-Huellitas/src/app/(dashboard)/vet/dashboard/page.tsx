@@ -29,7 +29,7 @@ import { hospitalizacionesService } from "@/domains/clinical/services/hospitaliz
 
 export default function DoctorDashboardPage() {
   const { user } = useAuthStore();
-  const todayStr = new Date().toLocaleDateString("en-CA", { timeZone: "America/La_Paz" });
+  const todayStr = new Date().toISOString().split("T")[0];
 
   // --- QUERIES ---
   const { data: financiero, refetch: refetchFinanciero } = useQuery({
