@@ -290,26 +290,33 @@ export class VacunasAplicadasService {
 
     const result: VacunaAplicada[] = [];
 
+    // N+1 Optimization: Get all newer applications for relevant pet+vaccine pairs at once
+    const tuples = allUpcoming.map(v => {
+      const petId = v.historial?.expediente?.mascota?.id || v.hospitalizacion?.mascota?.id;
+      return { id_vacuna_fk: v.id_vacuna_fk, petId, fechaAplicacion: v.fechaAplicacion };
+    }).filter(t => t.petId != null);
+
+    let newerApps: VacunaAplicada[] = [];
+    if (tuples.length > 0) {
+      newerApps = await this.vacunaRepo.createQueryBuilder('v')
+        .leftJoinAndSelect('v.historial', 'h')
+        .leftJoinAndSelect('h.expediente', 'e')
+        .leftJoinAndSelect('v.hospitalizacion', 'hosp')
+        .where('v.id_vacuna_fk IN (:...vacIds)', { vacIds: [...new Set(tuples.map(t => t.id_vacuna_fk))] })
+        .andWhere('(e.id_mascota_fk IN (:...petIds) OR hosp.id_mascota_fk IN (:...petIds))', { petIds: [...new Set(tuples.map(t => t.petId))] })
+        .getMany();
+    }
+
     for (const v of allUpcoming) {
       const pet = v.historial?.expediente?.mascota || v.hospitalizacion?.mascota;
       if (!pet) continue;
       const petId = pet.id;
 
-      // Check if there is a newer application for this pet and this vaccine
-      const hasNewer = await this.vacunaRepo.findOne({
-        where: [
-          {
-            id_vacuna_fk: v.id_vacuna_fk,
-            fechaAplicacion: MoreThan(v.fechaAplicacion),
-            historial: { expediente: { id_mascota_fk: petId } },
-          },
-          {
-            id_vacuna_fk: v.id_vacuna_fk,
-            fechaAplicacion: MoreThan(v.fechaAplicacion),
-            hospitalizacion: { id_mascota_fk: petId },
-          },
-        ],
-      });
+      const hasNewer = newerApps.some(na =>
+        na.id_vacuna_fk === v.id_vacuna_fk &&
+        new Date(na.fechaAplicacion).getTime() > new Date(v.fechaAplicacion).getTime() &&
+        (na.historial?.expediente?.id_mascota_fk === petId || na.hospitalizacion?.id_mascota_fk === petId)
+      );
 
       if (!hasNewer) {
         result.push(v);

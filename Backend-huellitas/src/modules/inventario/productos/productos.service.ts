@@ -70,6 +70,59 @@ export class ProductosService {
     return res;
   }
 
+  async findAllPaginated(page: number, limit: number, buscar: string, categoria: string): Promise<any> {
+    const qb = this.productoRepo.createQueryBuilder('producto')
+      .leftJoinAndSelect('producto.categoria', 'categoria')
+      .orderBy('producto.nombre', 'ASC');
+
+    if (buscar) {
+      qb.andWhere('(LOWER(producto.nombre) LIKE LOWER(:buscar) OR LOWER(producto.id) LIKE LOWER(:buscar))', { buscar: `%${buscar}%` });
+    }
+
+    if (categoria && categoria !== 'todas') {
+      qb.andWhere('categoria.nombre = :categoria', { categoria });
+    }
+
+    const [productos, total] = await qb
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    const envaseRepo = this.productoRepo.manager.getRepository(EnvaseAbierto);
+    const productosIds = productos.filter(p => p.tipoProducto === 'Multidosis').map(p => p.id);
+
+    let envasesMap: Record<number, number> = {};
+    if (productosIds.length > 0) {
+      const envases = await envaseRepo.createQueryBuilder('envase')
+        .where('envase.idProductoFk IN (:...ids)', { ids: productosIds })
+        .andWhere('envase.estado = :estado', { estado: 'Abierto' })
+        .getMany();
+
+      envasesMap = envases.reduce((acc, envase) => {
+        acc[envase.idProductoFk] = Number(envase.volumenRestante);
+        return acc;
+      }, {} as Record<number, number>);
+    }
+
+    const res: any[] = productos.map(p => {
+      let volumenRestanteOpen: number | null = null;
+      if (p.tipoProducto === 'Multidosis' && envasesMap[p.id] !== undefined) {
+        volumenRestanteOpen = envasesMap[p.id];
+      }
+      return {
+        ...p,
+        volumenRestanteOpen
+      };
+    });
+
+    return {
+      data: res,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit)
+    };
+  }
+
   async findStockCritico(): Promise<Producto[]> {
     return this.productoRepo
       .createQueryBuilder('producto')
