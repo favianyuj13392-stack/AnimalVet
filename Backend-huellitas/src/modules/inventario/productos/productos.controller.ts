@@ -31,8 +31,18 @@ export class ProductosController {
   @Roles('Administrador', 'Veterinario', 'Cajero')
   @ApiOperation({ summary: 'Listar todos los productos activos del inventario' })
   @ApiResponse({ status: 200, description: 'Lista de productos.' })
-  findAll() {
-    return this.productosService.findAll();
+  findAll(@Req() req: any) {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const buscar = (req.query.buscar as string) || '';
+    const categoria = (req.query.categoria as string) || 'todas';
+
+    // Si no mandan page ni limit, devolvemos todo por compatibilidad con otras pantallas
+    if (!req.query.page && !req.query.limit && !req.query.buscar && !req.query.categoria) {
+      return this.productosService.findAll();
+    }
+
+    return this.productosService.findAllPaginated(page, limit, buscar, categoria);
   }
 
   @Get('alertas/stock-critico')

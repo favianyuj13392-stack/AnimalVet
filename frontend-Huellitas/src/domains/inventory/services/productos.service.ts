@@ -30,6 +30,17 @@ export const productosService = {
 
   activar: async (id: string | number): Promise<void> => {
     await api.post(`/productos/${id}/activar`);
+  },
+
+  getAllPaginated: async (page: number, limit: number, buscar?: string, categoria?: string): Promise<{ data: Producto[], total: number, page: number, totalPages: number }> => {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+      ...(buscar && { buscar }),
+      ...(categoria && categoria !== 'todas' && { categoria }),
+    });
+    const { data } = await api.get<{ data: Producto[], total: number, page: number, totalPages: number }>(`/productos?${params.toString()}`);
+    return data;
   }
 };
 

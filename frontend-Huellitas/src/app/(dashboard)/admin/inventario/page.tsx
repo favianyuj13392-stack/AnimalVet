@@ -87,12 +87,20 @@ export default function InventarioPage() {
   const [editingProduct, setEditingProduct]   = useState<Producto | null>(null);
   const [busquedaKardex, setBusquedaKardex]   = useState("");
   const [busquedaLote, setBusquedaLote]       = useState("");
+  const [page, setPage]                       = useState(1);
+
+  React.useEffect(() => {
+    setPage(1);
+  }, [busqueda, filtroCategoria]);
+  const limit = 10;
 
   // ── Queries ──────────────────────────────────────────────────────────────
-  const { data: productos = [], isLoading } = useQuery<Producto[]>({
-    queryKey: ["productos-inventario"],
-    queryFn: () => productosService.getAll().catch(() => []),
+  const { data: productosResponse, isLoading } = useQuery({
+    queryKey: ["productos-inventario", page, limit, busqueda, filtroCategoria],
+    queryFn: () => productosService.getAllPaginated(page, limit, busqueda, filtroCategoria).catch(() => ({ data: [], total: 0, page: 1, totalPages: 1 })),
   });
+
+  const productos = productosResponse?.data || [];
 
   const { data: categorias = [] } = useQuery<Categoria[]>({
     queryKey: ["categorias-producto"],
@@ -149,12 +157,12 @@ export default function InventarioPage() {
     imagen_url: (p as any).imagen_url ?? null,
   }));
 
+  // La busqueda y la categoria ahora se delegan al servidor,
+  // solo filtramos inactivos localmente si no es admin,
+  // (aunque en un refactor ideal esto tambien iría al backend)
   const filtrados = mapped.filter((p) => {
-    const hayBusqueda = p.nombre.toLowerCase().includes(busqueda.toLowerCase()) || p.id.toLowerCase().includes(busqueda.toLowerCase());
-    const hayCategoria = filtroCategoria === "todas" || p.categoria === filtroCategoria;
-    // Si no es admin, solo mostramos productos activos
     const estaActivo = esAdmin ? true : !p.deletedAt; 
-    return hayBusqueda && hayCategoria && estaActivo;
+    return estaActivo;
   });
 
   const lotesFiltered = lotes.filter((l: any) =>
@@ -276,6 +284,27 @@ export default function InventarioPage() {
               </div>
             </CardHeader>
             <CardContent className="p-0">
+              <div className="flex justify-between items-center py-4 px-6 bg-muted/5 border-b border-border/10">
+                <Button
+                  variant="outline"
+                  disabled={page === 1}
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  className="rounded-xl h-8 text-xs font-semibold"
+                >
+                  &larr; Anterior
+                </Button>
+                <span className="text-xs font-medium text-muted-foreground">
+                  Página {productosResponse?.page || 1} de {productosResponse?.totalPages || 1}
+                </span>
+                <Button
+                  variant="outline"
+                  disabled={page >= (productosResponse?.totalPages || 1)}
+                  onClick={() => setPage(p => p + 1)}
+                  className="rounded-xl h-8 text-xs font-semibold"
+                >
+                  Siguiente &rarr;
+                </Button>
+              </div>
               <Table>
                 <TableHeader className="bg-muted/20">
                   <TableRow>

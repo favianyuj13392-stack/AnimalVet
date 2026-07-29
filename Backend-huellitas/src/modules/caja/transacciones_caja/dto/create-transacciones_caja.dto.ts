@@ -6,7 +6,6 @@ import {
   IsInt,
   IsNumber,
   IsOptional,
-  IsString,
   IsUUID,
   Min,
   ValidateNested,
@@ -15,7 +14,7 @@ import {
 export class CreateDetalleVentaProductoDto {
   @ApiPropertyOptional({ example: 'uuid-producto', description: 'UUID del producto vendido en mostrador. Requerido si no se envía id_servicio_fk.' })
   @IsOptional()
-  @IsString()
+  @IsUUID('all')
   id_producto_fk?: string;
 
   @ApiPropertyOptional({ example: 1, description: 'ID numérico del servicio vendido. Requerido si no se envía id_producto_fk. No descuenta stock.' })
@@ -26,7 +25,7 @@ export class CreateDetalleVentaProductoDto {
 
   @ApiPropertyOptional({ example: 'uuid-lote', description: 'Lote especifico a consumir. Si no se envia, el backend usa FIFO por vencimiento.' })
   @IsOptional()
-  @IsString()
+  @IsUUID('all')
   id_lote_fk?: string;
 
   @ApiProperty({ example: 2, description: 'Cantidad vendida o cobrada.' })
@@ -48,7 +47,7 @@ export class CreateDetalleVentaDto extends CreateDetalleVentaProductoDto {}
 export class CreateTransaccionesCajaDto {
   @ApiPropertyOptional({ example: 'uuid-cliente', description: 'Cliente/dueño asociado al cobro.' })
   @IsOptional()
-  @IsString()
+  @IsUUID('all')
   id_cliente_fk?: string;
 
   @ApiProperty({ example: 'Efectivo', enum: ['Efectivo', 'QR_Transferencia', 'Tarjeta'], description: 'Metodo de pago del cobro.' })
